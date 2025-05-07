@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Swipeable Content App - Shorts UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -167,6 +165,9 @@
 
         <div id="uiOverlay">
             <div class="actions-sidebar">
+                <div id="fullscreenButton" class="action-button"> <i class="fas fa-expand"></i>
+                    <span>Full</span>
+                </div>
                 <div class="action-button">
                     <i class="fas fa-thumbs-up"></i>
                     <span>Like</span>
@@ -225,6 +226,7 @@
         const uiActionsSidebar = uiOverlay.querySelector('.actions-sidebar');
         const uiChannelName = uiOverlay.querySelector('.channel-name');
         const uiDescription = uiOverlay.querySelector('.description');
+        const fullscreenButton = document.getElementById('fullscreenButton');
 
 
         // --- Swipe Control State ---
@@ -235,35 +237,24 @@
         const MIN_SWIPE_DISTANCE_FOR_NAVIGATION = 60; // Min dy at touchend to navigate.
 
         // --- Fullscreen Function ---
-        function requestFullScreenOnLaunch() {
+        function requestFullScreen() {
             const elem = document.documentElement; // Get the root HTML element
-            if (
-                !document.fullscreenElement && // Standard property
-                !document.mozFullScreenElement && // Firefox
-                !document.webkitFullscreenElement && // Chrome, Safari, Opera
-                !document.msFullscreenElement // IE/Edge
-            ) {
-                // If not already in fullscreen, request it
-                if (elem.requestFullscreen) {
-                    elem.requestFullscreen().catch(err => {
-                        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name}). This usually requires a user gesture.`);
-                    });
-                } else if (elem.mozRequestFullScreen) { /* Firefox */
-                    elem.mozRequestFullScreen().catch(err => {
-                        console.warn(`Error attempting to enable full-screen mode (Firefox): ${err.message} (${err.name})`);
-                    });
-                } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                    elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(err => {
-                         console.warn(`Error attempting to enable full-screen mode (WebKit): ${err.message} (${err.name})`);
-                    });
-                } else if (elem.msRequestFullscreen) { /* IE/Edge */
-                    elem.msRequestFullscreen().catch(err => {
-                        console.warn(`Error attempting to enable full-screen mode (MS): ${err.message} (${err.name})`);
-                    });
-                }
-            } else {
-                // Already in fullscreen or fullscreen API not supported well enough
-                // console.log("Already in fullscreen or API not fully supported for auto-launch.");
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else if (elem.mozRequestFullScreen) { /* Firefox */
+                elem.mozRequestFullScreen().catch(err => {
+                    console.warn(`Error attempting to enable full-screen mode (Firefox): ${err.message} (${err.name})`);
+                });
+            } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(err => {
+                     console.warn(`Error attempting to enable full-screen mode (WebKit): ${err.message} (${err.name})`);
+                });
+            } else if (elem.msRequestFullscreen) { /* IE/Edge */
+                elem.msRequestFullscreen().catch(err => {
+                    console.warn(`Error attempting to enable full-screen mode (MS): ${err.message} (${err.name})`);
+                });
             }
         }
 
@@ -272,9 +263,6 @@
         window.onYouTubeIframeAPIReady = function() {
             console.log("YouTube IFrame API Ready");
             initializeVisibleContent();
-            // Attempt fullscreen after YouTube API is ready and content might be initializing
-            // This is still subject to browser restrictions (user gesture often needed)
-            requestFullScreenOnLaunch(); 
         }
 
         function createYoutubePlayer(item, itemDiv) {
@@ -512,19 +500,27 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
                 console.log("DOM loaded, YouTube API not yet ready. Waiting for onYouTubeIframeAPIReady.");
-                // If YT API is not ready, requestFullScreenOnLaunch will be called from onYouTubeIframeAPIReady
             } else {
                 console.log("DOM loaded and YouTube API ready, initializing content.");
                 initializeVisibleContent();
-                // Attempt fullscreen if YT API was already ready
-                requestFullScreenOnLaunch();
             }
-            // Event listeners for UI buttons (like, dislike, etc.)
-            uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    console.log(`UI Button clicked: ${button.querySelector('span') ? button.querySelector('span').textContent : 'icon'}`);
+
+            // Fullscreen button listener
+            if (fullscreenButton) {
+                fullscreenButton.addEventListener('click', () => {
+                    requestFullScreen();
+                    fullscreenButton.style.display = 'none'; // Hide button after click
                 });
+            }
+
+            // Event listeners for other UI buttons (like, dislike, etc.)
+            uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
+                if (button.id !== 'fullscreenButton') { // Don't re-add listener to fullscreen button
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        console.log(`UI Button clicked: ${button.querySelector('span') ? button.querySelector('span').textContent : 'icon'}`);
+                    });
+                }
             });
         });
     </script>
