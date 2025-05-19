@@ -187,7 +187,7 @@
                 <div class="action-button">
                     <i class="fas fa-ellipsis-h"></i>
                 </div>
-                 <div class="action-button profile-icon-container">
+                 <div id="profileFullscreenButton" class="action-button profile-icon-container">
                     <i class="fas fa-user"></i>
                 </div>
             </div>
@@ -233,6 +233,8 @@
         const uiChannelName = uiOverlay.querySelector('.channel-name');
         const uiDescription = uiOverlay.querySelector('.description');
         const fullscreenButton = document.getElementById('fullscreenButton');
+        const profileFullscreenButton = document.getElementById('profileFullscreenButton');
+
 
 
         // --- Swipe Control State ---
@@ -518,6 +520,11 @@
                     fullscreenButton.style.display = 'none'; // Hide button after click
                 });
             }
+            if (profileFullscreenButton) {
+                profileFullscreenButton.addEventListener('click', () => {
+                    requestFullScreen();
+                });
+            }
 
             // Event listeners for other UI buttons (like, dislike, etc.)
             uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
