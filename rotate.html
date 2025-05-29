@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Shorts Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Tailwind default is often Inter */
+            margin: 0;
+            background-color: #000;
+            color: white;
+            overflow: hidden; /* Prevent scrollbars on body */
+        }
+
+        /* Container that enforces the viewport boundaries and cropping */
+        .video-outer-container {
+            position: fixed;
+            inset: 0; /* top, right, bottom, left = 0 */
+            background-color: black;
+            overflow: hidden; /* This will crop the video content */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        /* Container that holds the iframe and scales it to maintain 16:9 at full viewport height */
+        #player-host-div {
+            /* This div will be sized to be 100vh tall, and its width will be 16/9 of its height.
+               The iframe will be 100% width/height of this div.
+               The 'video-outer-container' will center this and crop if it's wider than viewport. */
+            width: calc(100vh * 16 / 9);
+            height: 100vh;
+            position: relative; /* For the iframe to be 100% of this */
+        }
+        
+        #player-host-div iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Text shadow for better readability of overlay elements */
+        .text-shadow {
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.6);
+        }
+        .icon-shadow {
+             filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));
+        }
+
+        /* Ensure clickable areas for icons are decent */
+        .icon-button {
+            padding: 8px; /* Add some padding around icons to make them easier to tap */
+        }
+
+    </style>
+    <link hre
