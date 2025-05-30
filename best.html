@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shorts Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #000;
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden; /* Prevent body scroll, scrolling is on shortsContainer */
+        }
+        /* Small Viewport Height, Dynamic Viewport Height, Large Viewport Height */
+        .h-svh { height: 100svh; }
+        .h-lvh { height: 100lvh; }
+        .h-dvh { height: 100dvh; }
+
+        #shortsContainer {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100svh; /* Use small viewport height for consistency on mobile */
+            width: 100vw;
+        }
+        .short-item {
+            scroll-snap-align: start;
+            width: 100vw;
+            height: 100svh; /* Each item takes full small viewport height */
+            position: relative;
+            overflow: hidden; /* Crucial for cropping the video player */
+            background-color: #000; /* Fallback background */
+        }
+        .youtube-player-div {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #111; /* Darker background for player area before load */
+        }
+        .ui-overlay {
+            pointer-events: none; /* Overlay doesn't catch clicks by default */
+        }
+        .ui-overlay > div > * {
+            pointer-events: auto; /* Individual elements within overlay can catch clicks */
+        }
+        .ui-overlay button, .ui-overlay img {
+             pointer-events: auto; /* Ensure buttons and images are interactive */
+        }
+
+        /* Custom animation for the spinning record */
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 8s linear infinite;
+        }
+
+        /* Hide scrollbar */
+        #shortsContainer::-webkit-scrollbar {
+            display: none;
+        }
+        #shortsContainer {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body>
+    <div id="shortsContainer">
+        </div>
+
+    <script>
+        // --- Configuration ---
+        const videoData = [
+            { videoId: 'G7AXRrKnUDE', startTime: 1865, user: '@LinusTechTips', description: 'I Called the Cops on My New Neighbours', sound: 'Original Sound - LTT', userImage: 'https://placehold.co/40x40/777/FFF?text=LT' },
+            { videoId: 'B5vN0qCSg_4', startTime: 423, user: '@MrBeast', description: 'Would You Swim With Sharks For $100,000?', sound: 'Suspenseful Music', userImage: 'https://placehold.co/40x40/FF0000/FFF?text=MB' },
+            { videoId: 'dQw4w9WgXcQ', startTime: 1, user: '@RickAstley', description: 'Never Gonna Give You Up - Official Music Video', sound: 'Never Gonna Give You Up - Rick Astley', userImage: 'https://placehold.co/40x40/3498DB/FFF?text=RA' },
+            { videoId: 'QH2-TGUlwu4', startTime: 60, user: '@NASA', description: 'Earth From Space & The ISS', sound: 'Cosmic Ambiance', userImage: 'https://placehold.co/40x40/0000FF/FFF?text=NA' }
+        ];
+
+        // --- Global State ---
+        let players = []; // To store YT.Player instances
+        let activePlayerIndex = -1; // Index of the currently playing video
+        let intersectionObserver;
+
+        // --- YouTube Player API Setup ---
+        function loadYouTubeAPI() {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        window.onYouTubeIframeAPIReady = function() {
+            initializeShorts();
+            setupIntersectionObserver();
+        };
+
+        // --- Player Creation and Management ---
+        function createPlayer(video, index) {
+            // The player div is already in the DOM, created by initializeShorts
+            const playerDivId = `player-${index}`;
+            return new YT.Player(playerDivId, {
+                // Dimensions will be set by adjustPlayerSize
+                videoId: video.videoId,
+                playerVars: {
+                    'autoplay': 0, // Controlled by IntersectionObserver
+                    'controls': 0,
+                    'start': video.startTime,
+                    'loop': 1,
+                    'playlist': video.videoId, // Required for loop:1 to work
+                    'mute': 1, // Start muted
+                    'playsinline': 1,
+                    'modestbranding': 1,
+                    'showinfo': 0,
+                    'rel': 0,
+                    'origin': window.location.origin || `${window.location.protocol}//${window.location.hostname}`
+                },
+                events: {
+                    'onReady': (event) => onPlayerReady(event, index),
+                    'onStateChange': (event) => onPlayerStateChange(event, index)
+                }
+            });
+        }
+
+        function onPlayerReady(event, index) {
+            const playerDiv = document.getElementById(`player-${index}`);
+            const shortItem = playerDiv.closest('.short-item');
+            if (shortItem) {
+                 adjustPlayerSize(playerDiv, shortItem.offsetWidth, shortItem.offsetHeight);
+            }
+            event.target.mute(); // Ensure it's muted
+            
+            // If this is the first video and it's in view, the observer will handle play
+            // For robustness, check if it should play if it's the first item and observer might not have fired yet
+            if (index === 0) {
+                const firstShortItem = document.querySelector('.short-item[data-index="0"]');
+                if (firstShortItem && isElementInViewport(firstShortItem)) {
+                     // Small delay to ensure player is truly ready
+                    setTimeout(() => {
+                        if (players[0] && typeof players[0].playVideo === 'function') {
+                            players[0].playVideo();
+                            activePlayerIndex = 0;
+                        }
+                    }, 200);
+                }
+            }
+        }
+        
+        function isElementInViewport (el) {
+            const rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+
+
+        function onPlayerStateChange(event, index) {
+            // Example: If video ends and loop isn't perfect, or to handle buffering
+            if (event.data === YT.PlayerState.ENDED) {
+                // The 'loop' and 'playlist' playerVars should handle this,
+                // but as a fallback, you could restart it.
+                // event.target.playVideo();
+            }
+        }
+
+        function adjustPlayerSize(playerDiv, containerWidth, containerHeight) {
+            if (!playerDiv || !containerWidth || !containerHeight) return;
+
+            const aspectRatio = 16 / 9;
+            let newWidth = containerWidth;
+            let newHeight = newWidth / aspectRatio;
+
+            if (newHeight < containerHeight) {
+                newHeight = containerHeight;
+                newWidth = newHeight * aspectRatio;
+            }
+            
+            playerDiv.style.width = `${newWidth}px`;
+            playerDiv.style.height = `${newHeight}px`;
+        }
+
+        // --- UI Initialization ---
+        function initializeShorts() {
+            const shortsContainer = document.getElementById('shortsContainer');
+            if (!shortsContainer) {
+                console.error("Shorts container not found!");
+                return;
+            }
+
+            videoData.forEach((video, index) => {
+                const shortEl = document.createElement('div');
+                shortEl.className = 'short-item flex justify-center items-center'; // Ensure player div is centered if smaller
+                shortEl.dataset.index = index;
+
+                // Video Player Div (YT API will replace this)
+                const playerDiv = document.createElement('div');
+                playerDiv.id = `player-${index}`;
+                playerDiv.className = 'youtube-player-div'; // JS will set width/height
+
+                // UI Overlay Structure
+                const uiOverlay = document.createElement('div');
+                uiOverlay.className = 'ui-overlay absolute inset-0 flex flex-col justify-between z-10 p-3 sm:p-4 text-shadow-md';
+
+                // Bottom Info (User, Description, Sound)
+                const bottomInfo = document.createElement('div');
+                bottomInfo.className = 'text-white';
+                bottomInfo.innerHTML = `
+                    <div class="flex items-center space-x-2 mb-2">
+                        <img src="${video.userImage}" alt="${video.user}" class="w-10 h-10 rounded-full border-2 border-white object-cover" onerror="this.src='https://placehold.co/40x40/CCCCCC/000000?text=U';"/>
+                        <div>
+                            <p class="font-semibold text-sm drop-shadow-lg">${video.user}</p>
+                            <p class="text-xs truncate max-w-[calc(100vw-120px)] drop-shadow">${video.description}</p>
+                        </div>
+                    </div>
+                    <div class="text-xs flex items-center drop-shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M18 3a1 1 0 00-1.196-.98l-10 2A1 1 0 006 5v9.114A4.002 4.002 0 004 13a4 4 0 000 8 4 4 0 004-4V8.886l9-1.8v5.001A4.002 4.002 0 0014 11a4 4 0 000 8 4 4 0 004-4V4a1 1 0 00-.196-.566l-.004-.004z"/>
+                        </svg>
+                        <span>${video.sound}</span>
+                    </div>
+                `;
+
+                // Right Actions (Like, Dislike, Comments, Share, More, Sound Icon)
+                const rightActions = document.createElement('div');
+                rightActions.className = 'self-end flex flex-col items-center space-y-3 sm:space-y-4 text-white';
+                rightActions.innerHTML = `
+                    <button title="Like" class="flex flex-col items-center focus:outline-none">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>
+                        <span class="text-xs drop-shadow">Like</span>
+                    </button>
+                    <button title="Dislike" class="flex flex-col items-center focus:outline-none">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-lg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.729 15.25S5.073 12.918 5 11.5c-.062-1.163.938-2.5 2.5-2.5H9V3s.26-.918 1.357-.918c1.1 0 1.213.918 1.213.918v2.879h4.972c1.47 0 2.48.815 2.48 2.314 0 .918-.328 1.995-1.562 2.759L15.5 12.5s2.813 1.373 2.813 3.375c0 2.373-2.062 3.125-3.625 3.125H9.75C8.25 19 6.729 17.625 6.729 15.25Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M9 9v10"></path></svg>
+                        <span class="text-xs drop-shadow">Dislike</span>
+                    </button>
+                    <button title="Comments" class="flex flex-col items-center focus:outline-none">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zm-4 0H9v2h2V9z" clip-rule="evenodd"></path></svg>
+                        <span class="text-xs drop-shadow">1.2K</span>
+                    </button>
+                    <button title="Share" class="flex flex-col items-center focus:outline-none">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path></svg>
+                        <span class="text-xs drop-shadow">Share</span>
+                    </button>
+                     <button title="More options" class="flex flex-col items-center focus:outline-none">
+                        <svg class="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zm0 12a2 2 0 110-4 2 2 0 010 4zm0-6a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                    </button>
+                    <img src="${video.userImage}" alt="Sound cover" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white object-cover animate-spin-slow" onerror="this.src='https://placehold.co/48x48/1DB954/000000?text=SND';"/>
+                `;
+                
+                // Assemble UI Overlay
+                // The right actions are part of the main flex flow of uiOverlay, pushed to the side by justify-between
+                // The bottom info is the first child, right actions is the second.
+                // To achieve the classic Shorts layout (bottom-left info, right-column actions):
+                const bottomWrapper = document.createElement('div'); // Wraps bottomInfo
+                bottomWrapper.appendChild(bottomInfo);
+
+                const rightWrapper = document.createElement('div'); // Wraps rightActions
+                rightWrapper.className = 'absolute right-3 sm:right-4 bottom-20 sm:bottom-24 flex flex-col items-center space-y-3 sm:space-y-4 text-white';
+                rightWrapper.appendChild(rightActions);
+
+
+                uiOverlay.appendChild(bottomWrapper); // This will be at the start (bottom left due to parent flex col and justify-between)
+                uiOverlay.appendChild(rightWrapper); // This needs to be positioned absolutely or use a different flex structure
+
+                shortEl.appendChild(playerDiv);
+                shortEl.appendChild(uiOverlay);
+                shortsContainer.appendChild(shortEl);
+
+                // Create player instance (YT API must be ready)
+                players[index] = createPlayer(video, index);
+            });
+        }
+
+        // --- Intersection Observer for Play/Pause ---
+        function setupIntersectionObserver() {
+            const observerOptions = {
+                root: document.getElementById('shortsContainer'), // Observe within the scrollable container
+                rootMargin: '0px',
+                threshold: 0.75 // 75% of the item must be visible
+            };
+
+            const observerCallback = (entries) => {
+                entries.forEach(entry => {
+                    const videoIndex = parseInt(entry.target.dataset.index);
+                    const player = players[videoIndex];
+
+                    if (!player || typeof player.playVideo !== 'function' || typeof player.pauseVideo !== 'function') {
+                        // Player not ready or methods not available
+                        return;
+                    }
+
+                    if (entry.isIntersecting) {
+                        // Video entered viewport
+                        if (activePlayerIndex !== videoIndex) {
+                            // Pause previously active video
+                            if (activePlayerIndex !== -1 && players[activePlayerIndex] && typeof players[activePlayerIndex].pauseVideo === 'function') {
+                                players[activePlayerIndex].pauseVideo();
+                            }
+                            // Play new video
+                            player.playVideo();
+                            activePlayerIndex = videoIndex;
+                        } else if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                            // If it's already the active one but somehow paused (e.g. user scrolled away and back quickly)
+                            player.playVideo();
+                        }
+                    } else {
+                        // Video left viewport
+                        if (activePlayerIndex === videoIndex) {
+                            player.pauseVideo();
+                            // Optionally set activePlayerIndex = -1 if no video is predominantly in view,
+                            // but with scroll snapping, usually one will snap into place.
+                        }
+                    }
+                });
+            };
+            intersectionObserver = new IntersectionObserver(observerCallback, observerOptions);
+            document.querySelectorAll('.short-item').forEach(item => intersectionObserver.observe(item));
+        }
+
+        // --- Window Resize Handling ---
+        window.addEventListener('resize', () => {
+            players.forEach((player, index) => {
+                // Check if player object and its methods exist, and if the DOM element exists
+                if (player && typeof player.getPlayerState === 'function') {
+                    const playerDiv = document.getElementById(`player-${index}`);
+                    if (playerDiv) {
+                        const shortItem = playerDiv.closest('.short-item');
+                        if (shortItem) {
+                           adjustPlayerSize(playerDiv, shortItem.offsetWidth, shortItem.offsetHeight);
+                        }
+                    }
+                }
+            });
+        });
+
+        // --- Initial Load ---
+        loadYouTubeAPI();
+
+    </script>
+</body>
+</html>
