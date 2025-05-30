@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Bee Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #1a1a2e; /* Dark blue-purple background */
+            color: #e0e0e0; /* Light grey text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .game-container {
+            background-color: #162447; /* Darker blue */
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px; /* Max width for larger screens */
+            border: 3px solid #fca311; /* Orange border */
+        }
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #fca311; /* Bright orange */
+            color: #1a1a2e; /* Dark blue text */
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px #e85d04; /* Darker orange shadow */
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .btn:hover {
+            background-color: #ffb703; /* Lighter orange on hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px #e85d04;
+        }
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #e85d04;
+        }
+        .btn-secondary {
+            background-color: #0077b6; /* Blue */
+            color: #ffffff;
+            box-shadow: 0 4px #023e8a; /* Darker blue shadow */
+        }
+        .btn-secondary:hover {
+            background-color: #0096c7;
+            box-shadow: 0 6px #023e8a;
+        }
+        .btn-secondary:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #023e8a;
+        }
+        input[type="text"] {
+            font-family: 'Press Start 2P', cursive;
+            padding: 0.75rem;
+            border: 2px solid #fca311; /* Orange border */
+            border-radius: 0.5rem;
+            background-color: #1f4068; /* Darker input background */
+            color: #e0e0e0; /* Light text */
+            margin: 1rem 0;
+            text-align: center;
+            width: 80%;
+            max-width: 300px; /* Max width for input */
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ffb703; /* Lighter orange on focus */
+            box-shadow: 0 0 10px rgba(252, 163, 17, 0.5);
+        }
+        .feedback {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            min-height: 2em; /* Reserve space for feedback */
+        }
+        .correct {
+            color: #00f5d4; /* Bright cyan for correct */
+        }
+        .incorrect {
+            color: #ff4d6d; /* Bright pink for incorrect */
+        }
+        .hidden {
+            display: none;
+        }
+        .difficulty-buttons button {
+            margin: 0.5rem;
+        }
+        .score-board {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+        }
+        .word-progress {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #adb5bd; /* Lighter grey for progress */
+        }
+        .title {
+            font-size: 2rem;
+            color: #fca311; /* Orange title */
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px #e85d04; /* Darker orange shadow */
+        }
+        /* Animation for feedback */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .feedback-animation {
+            animation: pop 0.3s ease-out;
+        }
+
+        /* Message Box Styling */
+        .message-box-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Ensure it's on top */
+        }
+        .message-box-content {
+            background-color: #162447; /* Darker blue */
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            text-align: center;
+            border: 3px solid #fca311; /* Orange border */
+            color: #e0e0e0;
+            max-width: 80%;
+        }
+        .message-box-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title">Spelling Bee Challenge</h1>
+
+        <div id="start-screen">
+            <p class="mb-4 text-lg">Select Difficulty:</p>
+            <div class="difficulty-buttons">
+                <button class="btn" onclick="startGame('easy')">Easy</button>
+                <button class="btn" onclick="startGame('medium')">Medium</button>
+                <button class="btn btn-secondary" onclick="startGame('hard')">Hard</button>
+            </div>
+             <p class="mt-6 text-sm text-gray-400">Click "Hear Word", listen carefully, then type what you hear!</p>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div id="word-progress" class="word-progress">Word 1 of 10</div>
+            <button id="hear-word-btn" class="btn btn-secondary mb-4">Hear Word</button>
+            <input type="text" id="spell-input" placeholder="Type the word...">
+            <button id="submit-btn" class="btn">Submit Spelling</button>
+            <div id="feedback" class="feedback"></div>
+            <div id="score-board" class="score-board">Score: 0</div>
+        </div>
+
+        <div id="game-over-screen" class="hidden">
+            <h2 class="text-2xl mb-4">Game Over!</h2>
+            <p id="final-score" class="text-xl mb-4">Your final score: 0</p>
+            <button class="btn" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <div id="message-box-overlay" class="message-box-overlay hidden">
+        <div class="message-box-content">
+            <p id="message-box-text"></p>
+            <button id="message-box-ok-btn" class="btn">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Configuration ---
+        const words = {
+            easy: ["cat", "dog", "sun", "run", "big", "red", "sky", "egg", "pen", "cup", "joy", "fun", "map", "log", "sit"],
+            medium: ["apple", "banana", "orange", "grape", "happy", "smile", "water", "earth", "light", "dream", "train", "cloud", "music", "story", "magic"],
+            hard: ["beautiful", "wonderful", "delicious", "adventure", "knowledge", "experience", "technology", "environment", "communication", "extraordinary", "opportunity", "imagination", "celebration", "curiosity", "responsibility"]
+        };
+        const wordsPerGame = 10; // Number of words per game session
+
+        // --- Game State Variables ---
+        let currentWord = "";
+        let currentWordIndex = 0;
+        let score = 0;
+        let selectedDifficulty = "easy";
+        let currentWordList = [];
+        let synth; // SpeechSynthesisUtterance instance
+        let audioContext; // Tone.js AudioContext
+        let correctSound, incorrectSound; // Tone.js synths for feedback
+
+        // --- HTML Elements ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const hearWordBtn = document.getElementById('hear-word-btn');
+        const spellInput = document.getElementById('spell-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const feedbackDiv = document.getElementById('feedback');
+        const scoreBoard = document.getElementById('score-board');
+        const finalScoreP = document.getElementById('final-score');
+        const wordProgressDiv = document.getElementById('word-progress');
+
+        // Message Box Elements
+        const messageBoxOverlay = document.getElementById('message-box-overlay');
+        const messageBoxText = document.getElementById('message-box-text');
+        const messageBoxOkBtn = document.getElementById('message-box-ok-btn');
+        
+        // --- Initialize Sound (Tone.js) ---
+        function initSound() {
+            if (Tone.context.state !== 'running') {
+                Tone.start(); // Start AudioContext on user gesture
+            }
+            // Sound for correct answer
+            correctSound = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
+            }).toDestination();
+
+            // Sound for incorrect answer
+            incorrectSound = new Tone.Synth({
+                oscillator: { type: "square" },
+                envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 }
+            }).toDestination();
+        }
+        
+        // --- Speech Synthesis ---
+        try {
+            synth = window.speechSynthesis;
+        } catch (e) {
+            console.error("Speech synthesis not supported.", e);
+            // Fallback or message to user if not supported
+            showMessage("Your browser doesn't support speech. This game might not work as expected.");
+        }
+
+        // --- Custom Message Box ---
+        function showMessage(message, onOkCallback) {
+            messageBoxText.textContent = message;
+            messageBoxOverlay.classList.remove('hidden');
+            
+            // Remove previous event listener to avoid multiple firings
+            const newOkBtn = messageBoxOkBtn.cloneNode(true);
+            messageBoxOkBtn.parentNode.replaceChild(newOkBtn, messageBoxOkBtn);
+            // Update reference
+            document.getElementById('message-box-ok-btn').onclick = () => {
+                messageBoxOverlay.classList.add('hidden');
+                if (onOkCallback) {
+                    onOkCallback();
+                }
+            };
+        }
+
+        // --- Game Logic Functions ---
+        function startGame(difficulty) {
+            // Initialize sound on first interaction
+            if (!audioContext || audioContext.state !== 'running') {
+                initSound();
+            }
+
+            selectedDifficulty = difficulty;
+            currentWordList = getRandomWords(words[selectedDifficulty], wordsPerGame);
+            currentWordIndex = 0;
+            score = 0;
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            
+            updateScoreDisplay();
+            loadNextWord();
+        }
+
+        function getRandomWords(wordArray, count) {
+            // Shuffle the array and take the first 'count' words
+            const shuffled = [...wordArray].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function loadNextWord() {
+            spellInput.value = ""; // Clear previous input
+            feedbackDiv.textContent = ""; // Clear feedback
+            feedbackDiv.className = 'feedback'; // Reset feedback class
+
+            if (currentWordIndex < currentWordList.length) {
+                currentWord = currentWordList[currentWordIndex];
+                wordProgressDiv.textContent = `Word ${currentWordIndex + 1} of ${currentWordList.length}`;
+                // The word will be spoken when the "Hear Word" button is clicked.
+                // We can give a hint or category if desired here.
+                // For now, just enable the button.
+                hearWordBtn.disabled = false;
+                spellInput.focus();
+            } else {
+                endGame();
+            }
+        }
+
+        function speakWord(wordToSpeak) {
+            if (!synth) {
+                showMessage("Speech synthesis is not available in your browser. The word is: " + wordToSpeak);
+                return;
+            }
+            if (synth.speaking) {
+                console.error('SpeechSynthesis.speaking');
+                return;
+            }
+            if (wordToSpeak !== '') {
+                const utterThis = new SpeechSynthesisUtterance(wordToSpeak);
+                utterThis.onend = function (event) {
+                    // console.log('SpeechSynthesisUtterance.onend');
+                }
+                utterThis.onerror = function (event) {
+                    console.error('SpeechSynthesisUtterance.onerror', event);
+                    showMessage("Sorry, there was an error speaking the word. The word is: " + wordToSpeak);
+                }
+                // Optional: Set voice, pitch, rate
+                // const voices = synth.getVoices();
+                // utterThis.voice = voices[0]; // Choose a voice
+                utterThis.pitch = 1.1; // Range 0-2
+                utterThis.rate = 0.9;  // Range 0.1-10
+                synth.speak(utterThis);
+            }
+        }
+
+        function checkSpelling() {
+            const userAnswer = spellInput.value.trim().toLowerCase();
+            hearWordBtn.disabled = true; // Disable hear button until next word
+
+            if (userAnswer === currentWord.toLowerCase()) {
+                score++;
+                feedbackDiv.textContent = "Correct!";
+                feedbackDiv.className = 'feedback correct feedback-animation';
+                if (correctSound) correctSound.triggerAttackRelease("C5", "8n", Tone.now());
+            } else {
+                feedbackDiv.innerHTML = `Incorrect. The word was: <span class="font-bold">${currentWord}</span>`;
+                feedbackDiv.className = 'feedback incorrect feedback-animation';
+                 if (incorrectSound) incorrectSound.triggerAttackRelease("C3", "4n", Tone.now());
+            }
+            updateScoreDisplay();
+            currentWordIndex++;
+            
+            // Wait a bit before loading the next word to show feedback
+            setTimeout(() => {
+                loadNextWord();
+            }, 2000); // 2 seconds delay
+        }
+
+        function updateScoreDisplay() {
+            scoreBoard.textContent = `Score: ${score}`;
+        }
+
+        function endGame() {
+            gameScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+            finalScoreP.textContent = `Your final score: ${score} out of ${currentWordList.length}`;
+        }
+
+        function restartGame() {
+            gameOverScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            feedbackDiv.textContent = "";
+            feedbackDiv.className = 'feedback';
+        }
+
+        // --- Event Listeners ---
+        hearWordBtn.addEventListener('click', () => {
+            if (currentWord) {
+                speakWord(currentWord);
+            }
+        });
+
+        submitBtn.addEventListener('click', checkSpelling);
+
+        spellInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkSpelling();
+            }
+        });
+        
+        // Initial setup: Ensure message box OK button closes it
+        messageBoxOkBtn.onclick = () => {
+            messageBoxOverlay.classList.add('hidden');
+        };
+
+        // Try to initialize Tone.js AudioContext early if possible,
+        // but it's best to do it on a user gesture (like startGame)
+        // to comply with browser autoplay policies.
+        document.body.addEventListener('click', () => {
+            if (Tone.context.state !== 'running') {
+                Tone.start().then(() => {
+                    console.log("AudioContext started via body click.");
+                    // If sounds haven't been initialized yet, do it now.
+                    if (!correctSound && !incorrectSound) {
+                        initSound();
+                    }
+                }).catch(e => console.error("Error starting AudioContext:", e));
+            }
+        }, { once: true }); // Run this listener only once
+
+    </script>
+</body>
+</html>
