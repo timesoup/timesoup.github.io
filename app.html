@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Video Feed</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll, container will scroll */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000; /* Dark background */
+            color: #fff;
+        }
+
+        #shorts-container {
+            height: 100vh; /* Full viewport height */
+            overflow-y: scroll; /* Enable vertical scrolling */
+            scroll-snap-type: y mandatory; /* Snap scrolling */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        .short-video-item {
+            height: 100vh; /* Each video item takes full viewport height */
+            width: 100vw; /* Full viewport width */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            scroll-snap-align: start; /* Snap to the start of this item */
+            position: relative; /* For potential overlay elements later */
+            background-color: #000; /* Background for video area */
+        }
+
+        .short-video-item video {
+            width: 100%; /* Fill width */
+            height: 100%; /* Fill height */
+            object-fit: cover; /* Fill container, crop if aspect ratio differs. */
+            display: block; /* Remove extra space below video */
+            cursor: pointer; /* Indicate it's clickable */
+        }
+
+        .no-videos-message {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 1.5em;
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+        }
+
+        .overlay-container {
+            position: absolute;
+            bottom: 10vh; /* Position from the bottom */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 90%;
+        }
+
+        .jump-button {
+            background-color: rgba(28, 28, 30, 0.8);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0; /* Hidden by default */
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .jump-button.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="shorts-container">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const shortsContainer = document.getElementById('shorts-container');
+            let currentVideo = null;
+
+            const displayMessage = (htmlContent) => {
+                shortsContainer.innerHTML = `<div class="no-videos-message">${htmlContent}</div>`;
+                shortsContainer.style.overflowY = 'hidden';
+            };
+
+            const timestampToSeconds = (ts) => {
+                if (!ts) return 0;
+                const parts = ts.replace(/[\[\]]/g, '').split(':').map(Number);
+                if (parts.length === 3) { // [hh:mm:ss]
+                    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+                }
+                if (parts.length === 2) { // [mm:ss]
+                    return parts[0] * 60 + parts[1];
+                }
+                return 0;
+            };
+
+            const handleTimeUpdate = (event) => {
+                const video = event.target;
+                const currentTime = video.currentTime;
+                const sections = JSON.parse(video.dataset.sections || '[]');
+                const jumpButton = video.parentElement.querySelector('.jump-button');
+                if (!sections.length || !jumpButton) return;
+
+                let activeSection = null;
+                for (const section of sections) {
+                    if (currentTime >= section.summary_audio_start_seconds) {
+                        activeSection = section;
+                    } else {
+                        break;
+                    }
+                }
+
+                const currentVisibleSectionTitle = jumpButton.dataset.activeTitle;
+
+                if (activeSection) {
+                    if (currentVisibleSectionTitle !== activeSection.title) {
+                        const originalVideoTime = timestampToSeconds(activeSection.timestamp);
+                        jumpButton.href = `${activeSection.original_video_url}&t=${originalVideoTime}s`;
+                        jumpButton.textContent = `Jump to: ${activeSection.title}`;
+                        jumpButton.dataset.activeTitle = activeSection.title;
+                        jumpButton.classList.add('visible');
+                    }
+                } else {
+                    if (currentVisibleSectionTitle || jumpButton.classList.contains('visible')) {
+                        jumpButton.classList.remove('visible');
+                        jumpButton.dataset.activeTitle = '';
+                    }
+                }
+            };
+
+            const setupIntersectionObserver = () => {
+                const allVideos = document.querySelectorAll('.short-video-item video');
+                if (allVideos.length === 0) return;
+
+                const handleIntersection = (entries) => {
+                    entries.forEach(entry => {
+                        const video = entry.target;
+                        if (entry.isIntersecting) {
+                            allVideos.forEach(v => v !== video && !v.paused && v.pause());
+                            video.play().catch(e => console.warn("Autoplay prevented:", e));
+                            currentVideo = video;
+                        } else {
+                            video.pause();
+                            if (currentVideo === video) currentVideo = null;
+                        }
+                    });
+                };
+                const videoObserver = new IntersectionObserver(handleIntersection, { threshold: 0.51 });
+                allVideos.forEach(video => videoObserver.observe(video));
+            };
+
+            const setupSpacebarListener = () => {
+                document.addEventListener('keydown', (event) => {
+                    if (event.code === 'Space' && currentVideo) {
+                        event.preventDefault();
+                        currentVideo.paused ? currentVideo.play() : currentVideo.pause();
+                    }
+                });
+            };
+
+            const loadVideos = async () => {
+                try {
+                    const response = await fetch('videos_index.json');
+                    if (!response.ok) throw new Error(`Could not fetch video index. Status: ${response.status}`);
+                    const videos = await response.json();
+
+                    if (!videos || videos.length === 0) {
+                        displayMessage(`<p><strong>No videos to display.</strong></p><p>Run <code>yt_ai.py</code> to process a YouTube video.</p>`);
+                        return;
+                    }
+
+                    const sectionPromises = videos.map(v =>
+                        fetch(`media_json/${v.source_folder}/summary_sections.json`)
+                            .then(res => res.ok ? res.json() : null)
+                            .catch(() => null)
+                    );
+                    const allSections = await Promise.all(sectionPromises);
+
+                    shortsContainer.innerHTML = '';
+                    videos.forEach((videoInfo, index) => {
+                        const videoItem = document.createElement('div');
+                        videoItem.className = 'short-video-item';
+
+                        const videoElement = document.createElement('video');
+                        videoElement.src = videoInfo.path;
+                        Object.assign(videoElement, { loop: true, playsInline: true, muted: false });
+
+                        const videoSections = allSections[index];
+                        if (videoSections) {
+                            videoElement.dataset.sections = JSON.stringify(videoSections);
+                            videoElement.addEventListener('timeupdate', handleTimeUpdate);
+                        }
+
+                        videoElement.addEventListener('click', () => videoElement.paused ? videoElement.play() : videoElement.pause());
+
+                        const loadingIndicator = document.createElement('div');
+                        loadingIndicator.className = 'loading-indicator';
+                        loadingIndicator.textContent = 'Loading...';
+
+                        videoElement.addEventListener('waiting', () => loadingIndicator.style.display = 'block');
+                        videoElement.addEventListener('playing', () => loadingIndicator.style.display = 'none');
+                        videoElement.addEventListener('canplay', () => loadingIndicator.style.display = 'none');
+
+                        const overlayContainer = document.createElement('div');
+                        overlayContainer.className = 'overlay-container';
+
+                        const jumpButton = document.createElement('a');
+                        jumpButton.className = 'jump-button';
+                        jumpButton.target = '_blank';
+                        jumpButton.rel = 'noopener noreferrer';
+
+                        overlayContainer.appendChild(jumpButton);
+                        videoItem.append(loadingIndicator, videoElement, overlayContainer);
+                        shortsContainer.appendChild(videoItem);
+                    });
+
+                    setupIntersectionObserver();
+                    setupSpacebarListener();
+
+                } catch (error) {
+                    console.error("Failed to load or initialize videos:", error);
+                    displayMessage(`<p><strong>Error loading videos.</strong></p><p>Could not find or read <code>videos_index.json</code>.</p><p>Ensure you've run the python script and are using a local server.</p><p><small>Details: ${error.message}</small></p>`);
+                }
+            };
+
+            loadVideos();
+        });
+    </script>
+
+</body>
+</html>
