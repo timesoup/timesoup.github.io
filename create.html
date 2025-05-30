@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Concept Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #181818; /* YouTube dark background */
+            color: #fff;
+        }
+        .header {
+            background-color: #202020; /* YouTube header dark */
+            border-bottom: 1px solid #303030;
+        }
+        .card {
+            background-color: #282828; /* Slightly lighter card background */
+            border: 1px solid #383838;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .card.selected {
+            border-color: #3ea6ff; /* YouTube blue accent */
+            box-shadow: 0 0 0 2px #3ea6ff;
+        }
+        .btn-primary {
+            background-color: #3ea6ff;
+            color: #fff;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #66baff;
+        }
+        .input-field {
+            background-color: #121212;
+            border: 1px solid #383838;
+            color: #fff;
+        }
+        .input-field:focus {
+            border-color: #3ea6ff;
+            box-shadow: 0 0 0 1px #3ea6ff;
+            outline: none;
+        }
+        /* Custom scrollbar for a more modern look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #202020;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3ea6ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="header sticky top-0 z-50 p-4 shadow-md">
+        <div class="container mx-auto flex items-center justify-between">
+            <h1 class="text-2xl font-bold text-white">Game Concept Generator</h1>
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6 lg:p-8">
+        <section id="intro" class="mb-8 p-6 rounded-lg card">
+            <p class="text-gray-300 text-sm sm:text-base">Select the parameters below to help craft a unique mobile game concept. Once you're done, click "Generate Concept" to get an AI-powered idea!</p>
+        </section>
+
+        <section id="param-genre" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">1. Choose a Game Genre:</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="genre">
+                </div>
+        </section>
+
+        <section id="param-art-style" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">2. Select an Art Style:</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="artStyle">
+                </div>
+        </section>
+
+        <section id="param-theme" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">3. Pick a Theme:</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="theme">
+                </div>
+        </section>
+
+        <section id="param-color-scheme" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">4. Desired Color Scheme:</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="colorScheme">
+                </div>
+        </section>
+
+        <section id="param-custom-details" class="mb-8 p-6 rounded-lg card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-100">5. Optional Details:</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="keyElement" class="block text-sm font-medium text-gray-300 mb-1">Key Element/Character (e.g., dragon, detective, sentient plant):</label>
+                    <input type="text" id="keyElement" name="keyElement" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="gameTitle" class="block text-sm font-medium text-gray-300 mb-1">Tentative Game Title (optional):</label>
+                    <input type="text" id="gameTitle" name="gameTitle" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </section>
+
+        <div class="my-10 text-center">
+            <button id="generate-concept" class="btn-primary font-semibold py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base">
+                ✨ Generate Game Concept
+            </button>
+        </div>
+
+        <section id="results" class="hidden mt-10 p-6 rounded-lg card">
+            <h2 class="text-2xl font-bold mb-4 text-center text-white">Your Game Concept!</h2>
+            <div id="loading-indicator" class="hidden loader"></div>
+            <div id="concept-output" class="text-gray-200 whitespace-pre-wrap leading-relaxed">
+                </div>
+            <div id="error-message" class="hidden text-red-400 mt-4 text-center"></div>
+        </section>
+    </main>
+
+    <footer class="text-center p-4 mt-10 text-sm text-gray-500 border-t border-gray-700">
+        Powered by AI & Your Creativity
+    </footer>
+
+    <script>
+        // --- Configuration for Selectable Options ---
+        const optionsConfig = {
+            genre: [
+                { name: "Puzzle", icon: "🧩" }, { name: "Arcade", icon: "🕹️" }, { name: "Adventure", icon: "🗺️" },
+                { name: "Strategy", icon: "♟️" }, { name: "Simulation", icon: "🚜" }, { name: "Casual", icon: "😊" }, // Changed icon for casual
+                { name: "RPG", icon: "📜" }, { name: "Runner", icon: "🏃" }
+            ],
+            artStyle: [
+                { name: "Pixel Art", img: "https://placehold.co/150x100/333/FFF?text=Pixel+Art" },
+                { name: "Cartoon", img: "https://placehold.co/150x100/3ea6ff/FFF?text=Cartoon" },
+                { name: "Minimalist", img: "https://placehold.co/150x100/777/FFF?text=Minimalist" },
+                { name: "3D Low Poly", img: "https://placehold.co/150x100/ff9900/FFF?text=Low+Poly" },
+                { name: "Realistic Sketch", img: "https://placehold.co/150x100/ccc/000?text=Sketch" },
+                { name: "Abstract", img: "https://placehold.co/150x100/purple/FFF?text=Abstract" }
+            ],
+            theme: [
+                { name: "Fantasy", icon: "🧙" }, { name: "Sci-Fi", icon: "🚀" }, { name: "Modern Life", icon: "🏙️" },
+                { name: "Nature", icon: "🌳" }, { name: "Horror", icon: "👻" }, { name: "Historical", icon: "🏛️" },
+                { name: "Cyberpunk", icon: "🤖" }, { name: "Steampunk", icon: "⚙️" }
+            ],
+            colorScheme: [
+                { name: "Vibrant", color: "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500" },
+                { name: "Pastel", color: "bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300" },
+                { name: "Dark Mode", color: "bg-gradient-to-r from-gray-700 via-gray-800 to-black" },
+                { name: "Monochrome", color: "bg-gradient-to-r from-gray-300 via-gray-500 to-gray-700" },
+                { name: "Earthy Tones", color: "bg-gradient-to-r from-yellow-600 via-green-700 to-orange-700" },
+                { name: "Oceanic Blues", color: "bg-gradient-to-r from-blue-400 via-teal-500 to-cyan-600" }
+            ]
+        };
+
+        const selectedParameters = {
+            genre: null,
+            artStyle: null,
+            theme: null,
+            colorScheme: null
+        };
+
+        // --- Populate Options ---
+        function populateOptions() {
+            for (const paramType in optionsConfig) {
+                const container = document.querySelector(`div[data-parameter="${paramType}"]`);
+                if (!container) continue;
+
+                optionsConfig[paramType].forEach(option => {
+                    const card = document.createElement('div');
+                    // Adjusted padding for smaller cards on mobile, and aspect ratio
+                    card.className = 'card p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer text-center flex flex-col items-center justify-center aspect-[4/3] sm:aspect-square';
+                    card.dataset.value = option.name;
+
+                    if (option.img) {
+                        const imgEl = document.createElement('img');
+                        imgEl.src = option.img;
+                        imgEl.alt = option.name;
+                        // Adjusted image max height for smaller screens
+                        imgEl.className = 'w-full h-auto object-contain rounded-md mb-1 max-h-[60px] sm:max-h-[70px] md:max-h-20';
+                        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/100x70/555/FFF?text=Error'; };
+                        card.appendChild(imgEl);
+                        const nameEl = document.createElement('span');
+                        nameEl.textContent = option.name;
+                        // Adjusted text size for smaller screens
+                        nameEl.className = 'text-xs sm:text-sm font-medium text-gray-200 mt-1';
+                        card.appendChild(nameEl);
+                    } else if (option.color) {
+                        const colorSwatch = document.createElement('div');
+                        // Adjusted swatch size for smaller screens
+                        colorSwatch.className = `w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full mb-1 sm:mb-2 ${option.color}`;
+                        card.appendChild(colorSwatch);
+                        const nameEl = document.createElement('span');
+                        nameEl.textContent = option.name;
+                        // Adjusted text size for smaller screens
+                        nameEl.className = 'text-xs sm:text-sm font-medium text-gray-200 mt-1';
+                        card.appendChild(nameEl);
+                    } else { // Icon based
+                        // Adjusted icon and text size for smaller screens
+                        card.innerHTML = `<div class="text-2xl sm:text-3xl md:text-4xl mb-1">${option.icon || '❓'}</div><span class="text-xs sm:text-sm font-medium text-gray-200">${option.name}</span>`;
+                    }
+                    
+                    card.addEventListener('click', () => handleSelection(paramType, option.name, card, container));
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        // --- Handle Selection ---
+        function handleSelection(paramType, value, selectedCard, container) {
+            // Allow deselecting by clicking the same card again
+            if (selectedParameters[paramType] === value) {
+                selectedParameters[paramType] = null;
+                selectedCard.classList.remove('selected');
+            } else {
+                selectedParameters[paramType] = value;
+                const allCards = container.querySelectorAll('.card');
+                allCards.forEach(c => c.classList.remove('selected'));
+                selectedCard.classList.add('selected');
+            }
+            console.log('Selected Parameters:', selectedParameters);
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateOptions();
+
+            const generateButton = document.getElementById('generate-concept');
+            const resultsSection = document.getElementById('results');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const conceptOutput = document.getElementById('concept-output');
+            const errorMessage = document.getElementById('error-message');
+
+            generateButton.addEventListener('click', async () => {
+                const keyElement = document.getElementById('keyElement').value.trim();
+                const gameTitle = document.getElementById('gameTitle').value.trim();
+
+                // Updated validation: Check if ANY parameter is selected OR if custom details are filled
+                const anyParameterSelected = Object.values(selectedParameters).some(param => param !== null);
+                if (!anyParameterSelected && !keyElement && !gameTitle) {
+                    errorMessage.textContent = "Please select at least one option or provide some custom details.";
+                    errorMessage.classList.remove('hidden');
+                    resultsSection.classList.remove('hidden'); 
+                    conceptOutput.classList.add('hidden');
+                    loadingIndicator.classList.add('hidden');
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
+                
+                resultsSection.classList.remove('hidden');
+                loadingIndicator.classList.remove('hidden');
+                conceptOutput.textContent = '';
+                conceptOutput.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+
+                let prompt = "Generate a creative mobile game concept with the following characteristics:\n";
+                if (selectedParameters.genre) prompt += `- Genre: ${selectedParameters.genre}\n`;
+                if (selectedParameters.artStyle) prompt += `- Art Style: ${selectedParameters.artStyle}\n`;
+                if (selectedParameters.theme) prompt += `- Theme: ${selectedParameters.theme}\n`;
+                if (selectedParameters.colorScheme) prompt += `- Desired Color Scheme: ${selectedParameters.colorScheme}\n`;
+                if (keyElement) prompt += `- Key Element/Character: "${keyElement}"\n`;
+                if (gameTitle) {
+                    prompt += `- Tentative Game Title: "${gameTitle}" (If good, use it. Otherwise, suggest a new one based on the concept).\n`;
+                } else {
+                    prompt += `- Suggest a catchy Game Title.\n`;
+                }
+                prompt += "\nThe concept should be detailed and engaging. Include:\n1. A catchy Game Title.\n2. A short, engaging Description (2-4 sentences).\n3. Two to three Core Gameplay Mechanics (be specific).\n4. Target Audience (e.g., casual players, puzzle enthusiasts, mid-core strategy fans).\n5. A potential Monetization idea (e.g., cosmetic IAPs, ad-supported, premium).\n6. A Unique Selling Proposition (USP) - what makes it stand out?";
+                
+                console.log("Sending prompt to LLM:", prompt);
+
+                try {
+                    let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; 
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('API Error:', errorData);
+                        throw new Error(`API request failed with status ${response.status}: ${errorData?.error?.message || 'Unknown error'}`);
+                    }
+
+                    const result = await response.json();
+                    console.log("LLM Raw Response:", result);
+
+                    loadingIndicator.classList.add('hidden');
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        conceptOutput.textContent = text;
+                        conceptOutput.classList.remove('hidden');
+                    } else {
+                         // Check for safety ratings or other reasons for empty candidates
+                        if (result.candidates && result.candidates.length > 0 && result.candidates[0].finishReason) {
+                             throw new Error(`Content generation stopped. Reason: ${result.candidates[0].finishReason}. ${result.candidates[0].safetyRatings ? JSON.stringify(result.candidates[0].safetyRatings) : ''}`);
+                        }
+                        throw new Error("No valid content received from LLM. The response might have been blocked or empty.");
+                    }
+                } catch (error) {
+                    console.error('Error generating concept:', error);
+                    loadingIndicator.classList.add('hidden');
+                    conceptOutput.classList.add('hidden');
+                    errorMessage.textContent = `Failed to generate concept. ${error.message}. Please try again or adjust your inputs.`;
+                    errorMessage.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
