@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>  
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Snake</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #2c2c2c; /* Dark grey background */
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Prevent scrollbars from canvas resizing */
+            color: #fff;
+        }
+        canvas {
+            border: 3px solid #fff;
+            background-color: #111; /* Dark background for game area */
+            display: block; /* Prevents extra space below canvas */
+            border-radius: 10px; /* Rounded corners for the canvas */
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3); /* Subtle glow */
+        }
+        /* Style for message box if we add one later */
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 18px;
+            z-index: 100; /* Ensure it's above the canvas */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        // --- Game Constants ---
+        const INITIAL_SNAKE_SEGMENTS = 5; // Initial number of segments
+        const INITIAL_THICKNESS = 4;      // Initial snake thickness in pixels
+        const SNAKE_SPEED = 2.5;          // Pixels moved per frame
+        const TURN_SPEED = 0.04;          // Radians per frame for turning (lower is slower)
+        const FOOD_RADIUS = 7;            // Radius of food items
+        const NUM_FOOD_ITEMS = 10;        // Number of food items on screen simultaneously
+
+        // --- Game Variables ---
+        let canvas, ctx;
+        let snake; // Array of {x, y} points representing snake segments
+        let currentThickness;
+        let foods; // Array of food objects
+        let score;
+        let mouseX, mouseY; // Mouse coordinates
+        let touchX, touchY; // Touch coordinates
+        let lastInputTimeMouse = 0;
+        let lastInputTimeTouch = 0;
+        let currentAngle; // Snake's current direction angle
+        let gameState; // 'START', 'PLAYING', 'GAME_OVER'
+        let segmentsToGrow; // Counter for how many segments to add after eating food
+
+        // --- Initialization ---
+        function initGame() {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            score = 0;
+            segmentsToGrow = 0;
+            gameState = 'START';
+
+            resizeCanvas(); // Set initial canvas size
+            resetGameVariables();
+            setupEventListeners();
+            gameLoop(); // Start the game loop
+        }
+
+        function resetGameVariables() {
+            currentThickness = INITIAL_THICKNESS;
+            createSnake();
+            spawnFood();
+            currentAngle = 0; // Start facing right
+            mouseX = undefined; // Reset input positions
+            mouseY = undefined;
+            touchX = undefined;
+            touchY = undefined;
+            lastInputTimeMouse = 0;
+            lastInputTimeTouch = 0;
+            segmentsToGrow = 0;
+            score = 0;
+        }
+
+        // --- Canvas Resizing ---
+        function resizeCanvas() {
+            const oldWidth = canvas.width;
+            const oldHeight = canvas.height;
+
+            // Make canvas responsive, occupying a large portion of the screen
+            canvas.width = window.innerWidth * 0.95;
+            canvas.height = window.innerHeight * 0.9;
+
+            // If game is playing, try to adjust food positions (simple scaling)
+            if (gameState === 'PLAYING' && foods && oldWidth > 0 && oldHeight > 0) {
+                foods.forEach(food => {
+                    food.x = (food.x / oldWidth) * canvas.width;
+                    food.y = (food.y / oldHeight) * canvas.height;
+                    // Ensure food stays within new bounds
+                    food.x = Math.max(food.radius, Math.min(canvas.width - food.radius, food.x));
+                    food.y = Math.max(food.radius, Math.min(canvas.height - food.radius, food.y));
+                });
+            } else if (gameState === 'PLAYING') { // If resized from a zero-size canvas
+                spawnFood(); // Re-spawn food if canvas was not initialized
+            }
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            // Mouse movement
+            document.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+                lastInputTimeMouse = Date.now();
+            });
+
+            // Touch movement
+            document.addEventListener('touchmove', e => {
+                e.preventDefault(); // Prevent page scrolling
+                const rect = canvas.getBoundingClientRect();
+                if (e.touches.length > 0) {
+                    touchX = e.touches[0].clientX - rect.left;
+                    touchY = e.touches[0].clientY - rect.top;
+                    lastInputTimeTouch = Date.now();
+                }
+            }, { passive: false });
+
+            // Click/Tap to start or restart game
+            canvas.addEventListener('click', handleInteraction);
+            canvas.addEventListener('touchstart', handleInteraction, { passive: true });
+            
+            // Resize event
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function handleInteraction() {
+            if (gameState === 'START') {
+                startGame();
+            } else if (gameState === 'GAME_OVER') {
+                resetGameVariables();
+                startGame();
+            }
+        }
+        
+        function startGame() {
+            gameState = 'PLAYING';
+        }
+
+        // --- Snake Logic ---
+        function createSnake() {
+            snake = [];
+            const startX = canvas.width / 2;
+            const startY = canvas.height / 2;
+            // Create initial snake segments
+            // Each segment is SNAKE_SPEED pixels apart from the next
+            for (let i = 0; i < INITIAL_SNAKE_SEGMENTS; i++) {
+                snake.push({ x: startX - i * SNAKE_SPEED, y: startY });
+            }
+        }
+
+        function updateSnake() {
+            if (!snake || snake.length === 0) return;
+
+            // Determine target position based on latest input (mouse or touch)
+            let targetX, targetY;
+            if (lastInputTimeMouse > lastInputTimeTouch && mouseX !== undefined) {
+                targetX = mouseX;
+                targetY = mouseY;
+            } else if (touchX !== undefined) {
+                targetX = touchX;
+                targetY = touchY;
+            } else {
+                // No input yet, or input is stale, snake moves straight
+                targetX = snake[0].x + Math.cos(currentAngle) * 100; // Project ahead
+                targetY = snake[0].y + Math.sin(currentAngle) * 100;
+            }
+
+            // Calculate target angle towards the input position
+            const dx = targetX - snake[0].x;
+            const dy = targetY - snake[0].y;
+            const newTargetAngle = Math.atan2(dy, dx);
+
+            // Smoothly interpolate currentAngle towards newTargetAngle
+            let angleDiff = newTargetAngle - currentAngle;
+            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI; // Normalize to (-PI, PI]
+            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+            if (Math.abs(angleDiff) < TURN_SPEED) {
+                currentAngle = newTargetAngle;
+            } else {
+                currentAngle += Math.sign(angleDiff) * TURN_SPEED;
+            }
+            // Normalize currentAngle to keep it within (-PI, PI]
+            while (currentAngle > Math.PI) currentAngle -= 2 * Math.PI;
+            while (currentAngle < -Math.PI) currentAngle += 2 * Math.PI;
+
+            // Move snake head
+            const newHead = {
+                x: snake[0].x + SNAKE_SPEED * Math.cos(currentAngle),
+                y: snake[0].y + SNAKE_SPEED * Math.sin(currentAngle)
+            };
+
+            snake.unshift(newHead); // Add new head
+
+            // Handle snake growth or tail removal
+            if (segmentsToGrow > 0) {
+                segmentsToGrow--;
+            } else {
+                snake.pop(); // Remove tail segment if not growing
+            }
+        }
+
+        function growSnake() {
+            currentThickness *= 2;
+            // Add segments equal to current snake length, effectively doubling its length
+            segmentsToGrow += snake.length; 
+            score++;
+        }
+
+        function drawSnake() {
+            if (!snake || snake.length === 0) return;
+            
+            ctx.beginPath();
+            ctx.moveTo(snake[0].x, snake[0].y);
+            for (let i = 1; i < snake.length; i++) {
+                ctx.lineTo(snake[i].x, snake[i].y);
+            }
+            ctx.lineWidth = currentThickness;
+            ctx.strokeStyle = '#32CD32'; // Lime Green
+            ctx.lineCap = 'round';   // Smooth ends of the line
+            ctx.lineJoin = 'round';  // Smooth joins between line segments
+            ctx.stroke();
+
+            // Draw a distinct head
+            ctx.beginPath();
+            ctx.arc(snake[0].x, snake[0].y, currentThickness / 1.8, 0, Math.PI * 2); // Head slightly larger
+            ctx.fillStyle = '#228B22'; // Forest Green
+            ctx.fill();
+        }
+
+        // --- Food Logic ---
+        function spawnFood() {
+            foods = [];
+            for (let i = 0; i < NUM_FOOD_ITEMS; i++) {
+                foods.push(createFoodItem());
+            }
+        }
+
+        function createFoodItem() {
+            // Ensure food spawns away from edges
+            const padding = FOOD_RADIUS * 2;
+            return {
+                x: Math.random() * (canvas.width - padding) + FOOD_RADIUS,
+                y: Math.random() * (canvas.height - padding) + FOOD_RADIUS,
+                radius: FOOD_RADIUS + Math.random() * 3, // Slight size variation
+                color: `hsl(${Math.random() * 360}, 90%, 60%)` // Bright random color
+            };
+        }
+
+        function drawFood() {
+            foods.forEach(food => {
+                ctx.beginPath();
+                ctx.arc(food.x, food.y, food.radius, 0, Math.PI * 2);
+                ctx.fillStyle = food.color;
+                ctx.fill();
+                // Add a little shine effect
+                ctx.beginPath();
+                ctx.arc(food.x - food.radius * 0.3, food.y - food.radius * 0.3, food.radius * 0.3, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fill();
+            });
+        }
+
+        // --- Collision Detection ---
+        function checkFoodCollisions() {
+            if (!snake || snake.length === 0) return;
+            const head = snake[0];
+            for (let i = foods.length - 1; i >= 0; i--) {
+                const food = foods[i];
+                const dist = Math.hypot(head.x - food.x, head.y - food.y);
+                // Collision if distance is less than sum of snake head "radius" and food radius
+                if (dist < (currentThickness / 2) + food.radius) {
+                    foods.splice(i, 1);         // Remove eaten food
+                    foods.push(createFoodItem()); // Add a new food item
+                    growSnake();
+                }
+            }
+        }
+
+        function checkBoundaryCollisions() {
+            if (!snake || snake.length === 0) return;
+            const head = snake[0];
+            const headRadius = currentThickness / 2; // Approximate radius of the snake's head
+            if (head.x - headRadius < 0 || head.x + headRadius > canvas.width ||
+                head.y - headRadius < 0 || head.y + headRadius > canvas.height) {
+                gameState = 'GAME_OVER';
+            }
+        }
+
+        function checkSelfCollisions() {
+            if (!snake || snake.length === 0) return;
+            const head = snake[0];
+            // Segments to skip for collision check to avoid colliding with the "neck"
+            // This depends on thickness and speed. Min 4 segments.
+            const skipSegments = Math.max(4, Math.ceil((currentThickness * 1.5) / SNAKE_SPEED));
+
+            for (let i = skipSegments; i < snake.length; i++) {
+                const segment = snake[i];
+                const dist = Math.hypot(head.x - segment.x, head.y - segment.y);
+                // Collision if head center is too close to a body segment's center
+                // Considering both are effectively circles of radius currentThickness/2
+                if (dist < currentThickness * 0.8) { // Use 0.8 factor for a bit of tolerance
+                    gameState = 'GAME_OVER';
+                    return; // Exit once collision is detected
+                }
+            }
+        }
+
+        // --- Game State Screens ---
+        function drawStartScreen() {
+            ctx.save(); // Save current context state
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.textAlign = 'center';
+            
+            ctx.font = `bold ${canvas.width * 0.05}px 'Press Start 2P'`; // Responsive font size
+            ctx.fillText('Fluid Snake', canvas.width / 2, canvas.height * 0.3);
+            
+            ctx.font = `${canvas.width * 0.025}px 'Press Start 2P'`;
+            ctx.fillText('Follow Mouse or Touch', canvas.width / 2, canvas.height * 0.45);
+            ctx.fillText('Eat to grow 2x longer & thicker!', canvas.width / 2, canvas.height * 0.55);
+            
+            ctx.font = `bold ${canvas.width * 0.03}px 'Press Start 2P'`;
+            ctx.fillStyle = '#32CD32'; // Lime Green for call to action
+            ctx.fillText('Click or Tap to Start', canvas.width / 2, canvas.height * 0.7);
+            ctx.restore(); // Restore context state
+        }
+
+        function drawGameOverScreen() {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#FF4500'; // OrangeRed for Game Over
+            ctx.textAlign = 'center';
+            
+            ctx.font = `bold ${canvas.width * 0.06}px 'Press Start 2P'`;
+            ctx.fillText('Game Over!', canvas.width / 2, canvas.height * 0.35);
+            
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `${canvas.width * 0.035}px 'Press Start 2P'`;
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height * 0.5);
+            
+            ctx.font = `bold ${canvas.width * 0.03}px 'Press Start 2P'`;
+            ctx.fillStyle = '#32CD32';
+            ctx.fillText('Click or Tap to Restart', canvas.width / 2, canvas.height * 0.65);
+            ctx.restore();
+        }
+
+        function drawScore() {
+            ctx.save();
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = `${Math.min(20, canvas.width * 0.025)}px 'Press Start 2P'`; // Responsive score font, max 20px
+            ctx.textAlign = 'left';
+            ctx.fillText(`Score: ${score}`, 20, Math.min(30, canvas.height * 0.05));
+            ctx.restore();
+        }
+
+        // --- Main Game Loop ---
+        function gameLoop() {
+            // Clear canvas
+            ctx.fillStyle = '#111111'; // Match canvas background color
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'PLAYING') {
+                updateSnake();
+                checkFoodCollisions();
+                checkBoundaryCollisions();
+                checkSelfCollisions(); // Must be after boundary to avoid issues if snake is partially out
+
+                drawFood();
+                drawSnake();
+                drawScore();
+            } else if (gameState === 'START') {
+                drawStartScreen();
+            } else if (gameState === 'GAME_OVER') {
+                drawFood(); // Draw food and snake in background for context
+                drawSnake();
+                drawGameOverScreen();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Start the game when the window loads ---
+        window.onload = initGame;
+    </script>
+</body>
+</html>
