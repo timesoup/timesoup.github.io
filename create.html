@@ -2,22 +2,196 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Concept Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Concept App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
+        body, html {
             font-family: 'Inter', sans-serif;
-            background-color: #181818; /* YouTube dark background */
+            background-color: #0F0F0F; /* YouTube dark background */
             color: #fff;
+            height: 100%;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars on main body */
+        }
+        .page-view {
+            height: 100vh; /* Full viewport height */
+            width: 100vw; /* Full viewport width */
+            display: none; /* Hidden by default */
+            overflow-y: auto; /* Allow scrolling within the page if content overflows */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        .page-view.active {
+            display: flex; /* Use flex for centering or layout */
+            flex-direction: column;
+        }
+
+        /* Shorts View Specific Styles */
+        #shorts-view {
+            background-color: #000;
+            position: relative;
+        }
+        .shorts-background-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Or a CSS animation */
+            z-index: 0;
+            /* Simple CSS animation as placeholder for video */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .shorts-ui-overlay {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+            padding-bottom: 70px; /* Space for bottom nav */
+        }
+        .shorts-side-icons {
+            position: absolute;
+            right: 12px;
+            bottom: 80px; /* Above nav bar */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .shorts-side-icons button {
+            background: none;
+            border: none;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .shorts-side-icons svg {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 4px;
+        }
+        .shorts-bottom-info {
+            color: white;
+            font-size: 14px;
+        }
+        .shorts-bottom-info .channel-name { font-weight: 600; }
+        .shorts-bottom-info .sound-info { display: flex; align-items: center; gap: 6px; margin-top: 4px;}
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #0F0F0F; /* Or #212121 for slightly lighter */
+            border-top: 1px solid #303030;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            z-index: 10;
+        }
+        .nav-item {
+            background: none;
+            border: none;
+            color: #aaa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+        .nav-item.active {
+            color: white;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 2px;
+        }
+        .nav-item-create svg {
+            width: 36px; /* Larger create button */
+            height: 36px;
+        }
+
+        /* Create Options Modal */
+        #create-options-modal {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #282828;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            padding: 20px;
+            z-index: 100;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+        }
+        #create-options-modal.active {
+            transform: translateY(0%);
+        }
+        #create-options-modal button {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            text-align: left;
+            border-bottom: 1px solid #383838;
+        }
+        #create-options-modal button:last-child {
+            border-bottom: none;
+        }
+        #create-options-modal button svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 16px;
+        }
+        .modal-close-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+            display: none;
+        }
+        .modal-close-area.active {
+            display: block;
+        }
+
+
+        /* Game Generator Styles (from previous) */
+        #generator-view {
+            background-color: #181818;
         }
         .header {
-            background-color: #202020; /* YouTube header dark */
+            background-color: #202020;
             border-bottom: 1px solid #303030;
         }
         .card {
-            background-color: #282828; /* Slightly lighter card background */
+            background-color: #282828;
             border: 1px solid #383838;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
@@ -26,7 +200,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         .card.selected {
-            border-color: #3ea6ff; /* YouTube blue accent */
+            border-color: #3ea6ff;
             box-shadow: 0 0 0 2px #3ea6ff;
         }
         .btn-primary {
@@ -47,158 +221,257 @@
             box-shadow: 0 0 0 1px #3ea6ff;
             outline: none;
         }
-        /* Custom scrollbar for a more modern look */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #202020;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #777;
-        }
-        /* Loading Spinner */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #202020; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3ea6ff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            border: 4px solid #f3f3f3; border-top: 4px solid #3ea6ff;
+            border-radius: 50%; width: 40px; height: 40px;
+            animation: spin 1s linear infinite; margin: 20px auto;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <header class="header sticky top-0 z-50 p-4 shadow-md">
-        <div class="container mx-auto flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-white">Game Concept Generator</h1>
-            <div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-gray-400">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
+    <div id="shorts-view" class="page-view active">
+        <div class="shorts-background-video"></div>
+        <div class="shorts-ui-overlay">
+            <div></div> 
+            
+            <div class="shorts-bottom-content">
+                <div class="shorts-bottom-info">
+                    <div class="channel-name">@CoolChannel123</div>
+                    <div class="sound-info">
+                        <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M9 13c0 1.105-1.12 2-2.5 2S4 14.105 4 13s1.12-2 2.5-2 2.5.895 2.5 2z"></path><path fill-rule="evenodd" d="M9 3v10H8V3h1z"></path><path d="M7.5 2a.5.5 0 01.5.5v9a.5.5 0 01-1 0v-9A.5.5 0 017.5 2z"></path></svg>
+                        Original Sound - User12345
+                    </div>
+                </div>
             </div>
         </div>
-    </header>
 
-    <main class="container mx-auto p-4 md:p-6 lg:p-8">
-        <section id="intro" class="mb-8 p-6 rounded-lg card">
-            <p class="text-gray-300 text-sm sm:text-base">Select the parameters below to help craft a unique mobile game concept. Once you're done, click "Generate Concept" to get an AI-powered idea!</p>
-        </section>
-
-        <section id="param-genre" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-100">1. Choose a Game Genre:</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="genre">
-                </div>
-        </section>
-
-        <section id="param-art-style" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-100">2. Select an Art Style:</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="artStyle">
-                </div>
-        </section>
-
-        <section id="param-theme" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-100">3. Pick a Theme:</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="theme">
-                </div>
-        </section>
-
-        <section id="param-color-scheme" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-100">4. Desired Color Scheme:</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="colorScheme">
-                </div>
-        </section>
-
-        <section id="param-custom-details" class="mb-8 p-6 rounded-lg card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-100">5. Optional Details:</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="keyElement" class="block text-sm font-medium text-gray-300 mb-1">Key Element/Character (e.g., dragon, detective, sentient plant):</label>
-                    <input type="text" id="keyElement" name="keyElement" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label for="gameTitle" class="block text-sm font-medium text-gray-300 mb-1">Tentative Game Title (optional):</label>
-                    <input type="text" id="gameTitle" name="gameTitle" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
-                </div>
-            </div>
-        </section>
-
-        <div class="my-10 text-center">
-            <button id="generate-concept" class="btn-primary font-semibold py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base">
-                ✨ Generate Game Concept
+        <div class="shorts-side-icons">
+            <button class="shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M8.864.046C7.908-.193 7.02.53 6.956 1.465c-.07 1.036.021 2.071.092 3.076-.071-1.005-.162-2.04-.092-3.076C6.956.53 6.092-.193 5.136.046L4.91.11C3.98.396 3.266 1.29 3.266 2.404v1.265c0 .269.095.524.26.707.215.236.498.42.796.572.224.112.457.202.698.286.24.085.49.15.746.197.253.046.512.068.776.084C7.399 6.557 7.7 6.5 8 6.5s.601.057.822.078c.264.017.523-.005.776-.084.256-.046.506-.112.746-.197.299-.152.581-.336.796-.572.165-.183.26-.438.26-.707V2.404c0-1.114-.72-2.008-1.656-2.294L8.864.046zM8 5c-.682 0-1.25-.466-1.25-1.033V2.404c0-.529.45-1.005 1.083-1.005.632 0 1.083.476 1.083 1.005v1.563C9.25 4.534 8.682 5 8 5z"></path></svg>
+                <span>1.2M</span>
+            </button>
+            <button class="shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M7.136 15.954C8.092 16.193 9 15.47 9.044 14.535c.07-1.036-.021-2.071-.092-3.076.071 1.005.162 2.04.092 3.076-.044.935-.908 1.652-1.864 1.414L7.09 15.89c-.93-.286-1.644-1.18-1.644-2.294v-1.265c0-.269-.095-.524-.26-.707-.215-.236-.498-.42-.796-.572-.224-.112-.457-.202-.698-.286-.24-.085-.49-.15-.746-.197C2.351 10.443 2.05 10.5 1.75 10.5s-.601-.057-.822-.078c-.264-.017-.523.005-.776.084C.9 10.554.65 10.62.404 10.667c-.299.152-.581.336-.796.572-.165.183-.26.438-.26.707V13.596c0 1.114.72 2.008 1.656 2.294l.224.06zM8 11c.682 0 1.25.466 1.25 1.033V13.596c0 .529-.45 1.005-1.083 1.005-.632 0-1.083-.476-1.083-1.005v-1.563C6.75 11.466 7.318 11 8 11z"></path></svg>
+                <span>Dislike</span>
+            </button>
+            <button class="shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M2.678 11.894a1 1 0 01.287.801 10.97 10.97 0 01-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 01.71-.074A8.06 8.06 0 008 14c3.996 0 7-2.506 7-5.5S11.996 3 8 3 1 5.506 1 8.5c0 .99.217 1.921.602 2.746a1.003 1.003 0 01.398.902c.069.428.16.816.28 1.154zM8 5.5A1 1 0 019 6.5v.095c0 .318.122.617.34.835l.011.012c.217.22.516.354.846.354.33 0 .629-.134.846-.354l.011-.012c.218-.218.34-.517.34-.835V6.5A1 1 0 0112 5.5a1 1 0 011 1v.095c0 .318.122.617.34.835l.011.012c.217.22.516.354.846.354.33 0 .629-.134.846-.354l.011-.012c.218-.218.34-.517.34-.835V6.5A1 1 0 0115 5.5a1 1 0 011 1v.095c0 .886-.415 1.668-1.085 2.185V8.5c0 2.209-2.239 4-5 4s-5-1.791-5-4v-.72c-.67-.517-1.085-1.299-1.085-2.185V6.5A1 1 0 013 5.5a1 1 0 011-1v.095c0 .318.122.617.34.835l.011.012c.217.22.516.354.846.354.33 0 .629-.134.846-.354l.011-.012C5.878 7.117 6 6.818 6 6.5V5.5A1 1 0 017 4.5a1 1 0 011 1z"></path></svg>
+                <span>302K</span>
+            </button>
+            <button class="shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M4.715 6.542 3.343 7.914a.5.5 0 10.707.707l1.707-1.707a.5.5 0 000-.708L4.05 4.839a.5.5 0 10-.707.707l1.373 1.373zM.035 8.465a.5.5 0 00-.707 0l-.708.707a.5.5 0 00.707.708L.664 8.84a.5.5 0 000-.708L-.035 7.43zM13.293 1.293a1 1 0 011.414 0l.03.03.03.03a1 1 0 010 1.414l-1.428 1.429a1 1 0 01-1.415 0l-.03-.03-.03-.03a1 1 0 010-1.414l1.429-1.428zM7.965 8.465a.5.5 0 00-.707 0l-.708.707a.5.5 0 00.707.708L7.965 9.16a.5.5 0 000-.708L7.257 7.43zm-.707-2.122L7.965 7.05a.5.5 0 00.707 0l.707-.707a.5.5 0 00-.707-.707L7.258 6.343a.5.5 0 000 .707zm1.414 0L8.672 7.05a.5.5 0 00.707 0l.707-.707a.5.5 0 00-.707-.707L8.672 6.343a.5.5 0 000 .707zM4.715 9.542l-1.373 1.373a.5.5 0 10.707.707l1.707-1.707a.5.5 0 000-.708L4.05 7.839a.5.5 0 10-.707.707l1.373 1.373zM.035 7.535a.5.5 0 00.707 0l.708-.707a.5.5 0 00-.707-.708L-.664 7.16a.5.5 0 000 .708l.707.707zM13.293 14.707a1 1 0 010-1.414l1.428-1.429a1 1 0 011.415 0l.03.03.03.03a1 1 0 010 1.414l-1.429 1.428a1 1 0 01-1.414 0l-.03-.03-.03-.03zM7.965 7.535a.5.5 0 00.707 0l.708-.707a.5.5 0 00-.707-.708L7.965 6.84a.5.5 0 000 .708l.707.707zm-.707 2.122L7.965 8.95a.5.5 0 00.707 0l.707.707a.5.5 0 00-.707.707L7.258 9.657a.5.5 0 000-.707zm1.414 0L8.672 8.95a.5.5 0 00.707 0l.707.707a.5.5 0 00-.707.707L8.672 9.657a.5.5 0 000-.707z"></path><path d="M10.158 1.623A1.96 1.96 0 0112.084 0a1.96 1.96 0 011.927 1.623c.11.624.035 1.315-.15 1.99-.186.676-.493 1.31-.885 1.85-.393.54-.858.983-1.377 1.285-.52.302-1.074.454-1.639.454s-1.12-.152-1.639-.454c-.52-.302-.984-.745-1.377-1.286-.392-.54-.7-1.173-.885-1.85C10.123 2.938 10.048 2.247 10.158 1.623zM8 5.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5zm4.5-.5a.5.5 0 000-1h-3a.5.5 0 000 1h3zM8 3.5a.5.5 0 001 0V2a.5.5 0 00-1 0v1.5zM5.5 5a.5.5 0 000-1H4a.5.5 0 000 1h1.5z"></path></svg>
+                <span>Share</span>
+            </button>
+            <button class="shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M9.5 13a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path></svg>
             </button>
         </div>
 
-        <section id="results" class="hidden mt-10 p-6 rounded-lg card">
-            <h2 class="text-2xl font-bold mb-4 text-center text-white">Your Game Concept!</h2>
-            <div id="loading-indicator" class="hidden loader"></div>
-            <div id="concept-output" class="text-gray-200 whitespace-pre-wrap leading-relaxed">
-                </div>
-            <div id="error-message" class="hidden text-red-400 mt-4 text-center"></div>
-        </section>
-    </main>
+        <nav class="bottom-nav">
+            <button class="nav-item shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M8.354 1.146a.5.5 0 00-.708 0l-6 6A.5.5 0 001.5 7.5v7a.5.5 0 00.5.5h4.5a.5.5 0 00.5-.5v-4h2v4a.5.5 0 00.5.5H14a.5.5 0 00.5-.5v-7a.5.5 0 00-.146-.354L13 5.793V2.5a.5.5 0 00-.5-.5h-1a.5.5 0 00-.5.5v1.293L8.354 1.146zM2.5 14V7.707l5.5-5.5 5.5 5.5V14H10v-4a.5.5 0 00-.5-.5h-3a.5.5 0 00-.5.5v4H2.5z"></path></svg>
+                <span>Home</span>
+            </button>
+            <button class="nav-item active shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M5.5 5.086A1.5 1.5 0 017.028 4h1.944a1.5 1.5 0 011.482 1.086l.754 2.865a.5.5 0 01-.958.249l-.754-2.864A.5.5 0 008.972 5H7.028a.5.5 0 00-.498.436l-.754 2.865a.5.5 0 11-.958-.25l.754-2.864z"></path><path d="M13.202 3.634a1.5 1.5 0 011.018 1.458l-1.13 6.97a1.5 1.5 0 01-1.473 1.203H4.383a1.5 1.5 0 01-1.472-1.203l-1.13-6.97A1.5 1.5 0 012.8 3.634H4.09a2.51 2.51 0 01.024-.164.5.5 0 01.498-.436h6.764a.5.5 0 01.498.436c.007.055.015.109.024.164h1.283zm-1.283.827H4.08l1.055 6.506h5.73l1.055-6.506z"></path></svg>
+                <span>Shorts</span>
+            </button>
+            <button id="create-btn" class="nav-item nav-item-create">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path fill-rule="evenodd" d="M8 2a.5.5 0 01.5.5v5h5a.5.5 0 010 1h-5v5a.5.5 0 01-1 0v-5h-5a.5.5 0 010-1h5v-5A.5.5 0 018 2z"></path></svg>
+            </button>
+            <button class="nav-item shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M2 2.5A2.5 2.5 0 014.5 0h7A2.5 2.5 0 0114 2.5v10.5A2.5 2.5 0 0111.5 15h-7A2.5 2.5 0 012 12.5V2.5zm3.509 1.025a.5.5 0 00-.495.578l.5 2.5a.5.5 0 00.99 0l.5-2.5a.5.5 0 00-.495-.578h-1zM9.991 12H6.009a.99.99 0 01-.009-1.98h3.982a.99.99 0 01.01 1.98zM11.5 5H4.5a.5.5 0 000 1h7a.5.5 0 000-1zm0 3H4.5a.5.5 0 000 1h7a.5.5 0 000-1z"></path></svg>
+                <span>Subscriptions</span>
+            </button>
+            <button class="nav-item shorts-interactive-btn">
+                <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M2.5 0A2.5 2.5 0 000 2.5v11A2.5 2.5 0 002.5 16h11a2.5 2.5 0 002.5-2.5v-11A2.5 2.5 0 0013.5 0h-11zM1 2.5A1.5 1.5 0 012.5 1h11A1.5 1.5 0 0115 2.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 011 13.5v-11zM4.5 6a.5.5 0 000 1h7a.5.5 0 000-1h-7zm0 3a.5.5 0 000 1h7a.5.5 0 000-1h-7zM4 9.5a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z"></path></svg>
+                <span>Library</span>
+            </button>
+        </nav>
+    </div>
 
-    <footer class="text-center p-4 mt-10 text-sm text-gray-500 border-t border-gray-700">
-        Powered by AI & Your Creativity
-    </footer>
+    <div id="modal-close-area" class="modal-close-area"></div>
+    <div id="create-options-modal">
+        <h3 class="text-lg font-semibold mb-4 px-1">Create</h3>
+        <button id="create-short-btn">
+            <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M5.5 5.086A1.5 1.5 0 017.028 4h1.944a1.5 1.5 0 011.482 1.086l.754 2.865a.5.5 0 01-.958.249l-.754-2.864A.5.5 0 008.972 5H7.028a.5.5 0 00-.498.436l-.754 2.865a.5.5 0 11-.958-.25l.754-2.864z"></path><path d="M13.202 3.634a1.5 1.5 0 011.018 1.458l-1.13 6.97a1.5 1.5 0 01-1.473 1.203H4.383a1.5 1.5 0 01-1.472-1.203l-1.13-6.97A1.5 1.5 0 012.8 3.634H4.09a2.51 2.51 0 01.024-.164.5.5 0 01.498-.436h6.764a.5.5 0 01.498.436c.007.055.015.109.024.164h1.283zm-1.283.827H4.08l1.055 6.506h5.73l1.055-6.506z"></path></svg>
+            Create a Short
+        </button>
+        <button id="go-live-btn">
+             <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M10.283 2.283A.5.5 0 0110.5 2h1a.5.5 0 01.5.5v1a.5.5 0 01-1 0V3h-.217a3.5 3.5 0 00-6.566 0H3.5v-.5a.5.5 0 01.5-.5h1a.5.5 0 01.283.067A3.501 3.501 0 008 4.5a3.5 3.5 0 002.217-1.15.5.5 0 01.066-.067zM8 6a2 2 0 100-4 2 2 0 000 4z"></path><path d="M12.5 8a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zm-1.5.5a.5.5 0 000-1H9.5a.5.5 0 000 1h1.5zm-2 0a.5.5 0 000-1H7.5a.5.5 0 000 1h1.5zm-3.5-.5a.5.5 0 01.5.5v1a.5.5 0 01-1 0v-1a.5.5 0 01.5-.5zM2 11.5a.5.5 0 00.5.5h11a.5.5 0 000-1h-11a.5.5 0 00-.5.5z"></path><path d="M3 13.5a.5.5 0 01.5-.5h9a.5.5 0 010 1h-9a.5.5 0 01-.5-.5z"></path></svg>
+            Go Live
+        </button>
+        <button id="create-post-btn">
+            <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path fill-rule="evenodd" d="M2 1.5A1.5 1.5 0 00.5 3v10A1.5 1.5 0 002 14.5h12a1.5 1.5 0 001.5-1.5V3A1.5 1.5 0 0014 1.5H2zM1 3a.5.5 0 01.5-.5h13a.5.5 0 01.5.5v10a.5.5 0 01-.5.5h-13a.5.5 0 01-.5-.5V3zm4.5 2a.5.5 0 000 1h6a.5.5 0 000-1h-6zm0 3a.5.5 0 000 1h6a.5.5 0 000-1h-6zm0 3a.5.5 0 000 1h3a.5.5 0 000-1h-3z"></path></svg>
+            Create a Post
+        </button>
+        <button id="create-game-btn">
+            <svg fill="currentColor" viewBox="0 0 16 16" height="1em" width="1em"><path d="M8 1a.5.5 0 01.5.5v2.555l1.78-.99a.5.5 0 01.72.444v5l-1.78-.99V11.5a.5.5 0 01-1 0V9.055l-1.78.99a.5.5 0 01-.72-.444v-5l1.78.99V1.5A.5.5 0 018 1zM7 6.618v3.764l1-.556V6.062l-1 .556zM8.5 3.055l-.5.278V5.5l.5-.278V3.055zM11 5.382l-1-.556v3.764l1 .556V5.382z"></path><path d="M0 4a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H2a2 2 0 01-2-2V4zm14 0a1 1 0 00-1-1H3a1 1 0 00-1 1v8a1 1 0 001 1h10a1 1 0 001-1V4z"></path></svg>
+            Create Game
+        </button>
+    </div>
+
+    <div id="generator-view" class="page-view">
+        <header class="header sticky top-0 z-50 p-4 shadow-md w-full">
+            <div class="container mx-auto flex items-center justify-between">
+                <button id="back-to-shorts-btn" class="text-white p-2 rounded-md hover:bg-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                </button>
+                <h1 class="text-xl sm:text-2xl font-bold text-white mx-auto">Game Concept Generator</h1>
+                <div class="w-8"></div> </div>
+        </header>
+
+        <main class="container mx-auto p-4 md:p-6 lg:p-8 flex-grow w-full">
+            <section id="intro" class="mb-8 p-6 rounded-lg card">
+                <p class="text-gray-300 text-sm sm:text-base">Select the parameters below to help craft a unique mobile game concept. Once you're done, click "Generate Concept" to get an AI-powered idea!</p>
+            </section>
+
+            <section id="param-genre" class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-100">1. Choose a Game Genre:</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="genre"></div>
+            </section>
+
+            <section id="param-art-style" class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-100">2. Select an Art Style:</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="artStyle"></div>
+            </section>
+
+            <section id="param-theme" class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-100">3. Pick a Theme:</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="theme"></div>
+            </section>
+
+            <section id="param-color-scheme" class="mb-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-100">4. Desired Color Scheme:</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" data-parameter="colorScheme"></div>
+            </section>
+
+            <section id="param-custom-details" class="mb-8 p-6 rounded-lg card">
+                <h2 class="text-xl font-semibold mb-4 text-gray-100">5. Optional Details:</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="keyElement" class="block text-sm font-medium text-gray-300 mb-1">Key Element/Character:</label>
+                        <input type="text" id="keyElement" name="keyElement" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="gameTitle" class="block text-sm font-medium text-gray-300 mb-1">Tentative Game Title:</label>
+                        <input type="text" id="gameTitle" name="gameTitle" class="w-full p-2 rounded-md input-field focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </section>
+
+            <div class="my-10 text-center">
+                <button id="generate-concept" class="btn-primary font-semibold py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base">
+                    ✨ Generate Game Concept
+                </button>
+            </div>
+
+            <section id="results" class="hidden mt-10 p-6 rounded-lg card">
+                <h2 class="text-2xl font-bold mb-4 text-center text-white">Your Game Concept!</h2>
+                <div id="loading-indicator" class="hidden loader"></div>
+                <div id="concept-output" class="text-gray-200 whitespace-pre-wrap leading-relaxed"></div>
+                <div id="error-message" class="hidden text-red-400 mt-4 text-center"></div>
+            </section>
+        </main>
+
+        <footer class="text-center p-4 mt-auto text-sm text-gray-500 border-t border-gray-700 w-full">
+            Powered by AI & Your Creativity
+        </footer>
+    </div>
 
     <script>
-        // --- Configuration for Selectable Options ---
+        // --- Global State & Elements ---
+        let fullscreenRequested = false;
+        const shortsView = document.getElementById('shorts-view');
+        const generatorView = document.getElementById('generator-view');
+        const createOptionsModal = document.getElementById('create-options-modal');
+        const modalCloseArea = document.getElementById('modal-close-area');
+
+        // --- Fullscreen Function ---
+        function requestAppFullScreen() {
+            if (fullscreenRequested) return;
+            fullscreenRequested = true;
+
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(err => console.error(`FS Error: ${err.message}`));
+            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen().catch(err => console.error(`FS Error: ${err.message}`));
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen().catch(err => console.error(`FS Error: ${err.message}`));
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen().catch(err => console.error(`FS Error: ${err.message}`));
+            else console.log("Fullscreen API not supported.");
+        }
+
+        // --- Page Navigation ---
+        function showPage(pageId) {
+            shortsView.classList.remove('active');
+            generatorView.classList.remove('active');
+            if (pageId === 'shorts-view') shortsView.classList.add('active');
+            else if (pageId === 'generator-view') generatorView.classList.add('active');
+        }
+
+        // --- Modal Controls ---
+        function openCreateModal() {
+            createOptionsModal.classList.add('active');
+            modalCloseArea.classList.add('active');
+        }
+        function closeCreateModal() {
+            createOptionsModal.classList.remove('active');
+            modalCloseArea.classList.remove('active');
+        }
+
+        // --- Event Listeners for Shorts View ---
+        document.getElementById('create-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent body click if modal is open
+            openCreateModal();
+            requestAppFullScreen(); // Also trigger fullscreen when create is opened
+        });
+        modalCloseArea.addEventListener('click', closeCreateModal);
+
+        document.getElementById('create-short-btn').addEventListener('click', () => { console.log('Create Short clicked'); closeCreateModal(); });
+        document.getElementById('go-live-btn').addEventListener('click', () => { console.log('Go Live clicked'); closeCreateModal(); });
+        document.getElementById('create-post-btn').addEventListener('click', () => { console.log('Create Post clicked'); closeCreateModal(); });
+        document.getElementById('create-game-btn').addEventListener('click', () => {
+            closeCreateModal();
+            showPage('generator-view');
+        });
+        
+        document.querySelectorAll('.shorts-interactive-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                requestAppFullScreen();
+                console.log(`${btn.innerText.trim() || 'Side icon'} button clicked on Shorts page`);
+            });
+        });
+        
+        // --- Back button for Generator View ---
+        document.getElementById('back-to-shorts-btn').addEventListener('click', () => {
+            showPage('shorts-view');
+        });
+
+
+        // --- Game Generator Logic (adapted from previous) ---
         const optionsConfig = {
-            genre: [
-                { name: "Puzzle", icon: "🧩" }, { name: "Arcade", icon: "🕹️" }, { name: "Adventure", icon: "🗺️" },
-                { name: "Strategy", icon: "♟️" }, { name: "Simulation", icon: "🚜" }, { name: "Casual", icon: "😊" }, // Changed icon for casual
-                { name: "RPG", icon: "📜" }, { name: "Runner", icon: "🏃" }
-            ],
-            artStyle: [
-                { name: "Pixel Art", img: "https://placehold.co/150x100/333/FFF?text=Pixel+Art" },
-                { name: "Cartoon", img: "https://placehold.co/150x100/3ea6ff/FFF?text=Cartoon" },
-                { name: "Minimalist", img: "https://placehold.co/150x100/777/FFF?text=Minimalist" },
-                { name: "3D Low Poly", img: "https://placehold.co/150x100/ff9900/FFF?text=Low+Poly" },
-                { name: "Realistic Sketch", img: "https://placehold.co/150x100/ccc/000?text=Sketch" },
-                { name: "Abstract", img: "https://placehold.co/150x100/purple/FFF?text=Abstract" }
-            ],
-            theme: [
-                { name: "Fantasy", icon: "🧙" }, { name: "Sci-Fi", icon: "🚀" }, { name: "Modern Life", icon: "🏙️" },
-                { name: "Nature", icon: "🌳" }, { name: "Horror", icon: "👻" }, { name: "Historical", icon: "🏛️" },
-                { name: "Cyberpunk", icon: "🤖" }, { name: "Steampunk", icon: "⚙️" }
-            ],
-            colorScheme: [
-                { name: "Vibrant", color: "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500" },
-                { name: "Pastel", color: "bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300" },
-                { name: "Dark Mode", color: "bg-gradient-to-r from-gray-700 via-gray-800 to-black" },
-                { name: "Monochrome", color: "bg-gradient-to-r from-gray-300 via-gray-500 to-gray-700" },
-                { name: "Earthy Tones", color: "bg-gradient-to-r from-yellow-600 via-green-700 to-orange-700" },
-                { name: "Oceanic Blues", color: "bg-gradient-to-r from-blue-400 via-teal-500 to-cyan-600" }
-            ]
+            genre: [ { name: "Puzzle", icon: "🧩" }, { name: "Arcade", icon: "🕹️" }, { name: "Adventure", icon: "🗺️" }, { name: "Strategy", icon: "♟️" }, { name: "Simulation", icon: "🚜" }, { name: "Casual", icon: "😊" }, { name: "RPG", icon: "📜" }, { name: "Runner", icon: "🏃" } ],
+            artStyle: [ { name: "Pixel Art", img: "https://placehold.co/150x100/333/FFF?text=Pixel+Art" }, { name: "Cartoon", img: "https://placehold.co/150x100/3ea6ff/FFF?text=Cartoon" }, { name: "Minimalist", img: "https://placehold.co/150x100/777/FFF?text=Minimalist" }, { name: "3D Low Poly", img: "https://placehold.co/150x100/ff9900/FFF?text=Low+Poly" }, { name: "Sketch", img: "https://placehold.co/150x100/ccc/000?text=Sketch" }, { name: "Abstract", img: "https://placehold.co/150x100/purple/FFF?text=Abstract" } ],
+            theme: [ { name: "Fantasy", icon: "🧙" }, { name: "Sci-Fi", icon: "🚀" }, { name: "Modern", icon: "🏙️" }, { name: "Nature", icon: "🌳" }, { name: "Horror", icon: "👻" }, { name: "Historical", icon: "🏛️" }, { name: "Cyberpunk", icon: "🤖" }, { name: "Steampunk", icon: "⚙️" } ],
+            colorScheme: [ { name: "Vibrant", color: "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500" }, { name: "Pastel", color: "bg-gradient-to-r from-purple-300 via-pink-300 to-blue-300" }, { name: "Dark", color: "bg-gradient-to-r from-gray-700 via-gray-800 to-black" }, { name: "Monochrome", color: "bg-gradient-to-r from-gray-300 via-gray-500 to-gray-700" }, { name: "Earthy", color: "bg-gradient-to-r from-yellow-600 via-green-700 to-orange-700" }, { name: "Oceanic", color: "bg-gradient-to-r from-blue-400 via-teal-500 to-cyan-600" } ]
         };
+        const selectedParameters = { genre: null, artStyle: null, theme: null, colorScheme: null };
 
-        const selectedParameters = {
-            genre: null,
-            artStyle: null,
-            theme: null,
-            colorScheme: null
-        };
-
-        // --- Populate Options ---
-        function populateOptions() {
+        function populateGeneratorOptions() {
             for (const paramType in optionsConfig) {
-                const container = document.querySelector(`div[data-parameter="${paramType}"]`);
+                const container = generatorView.querySelector(`div[data-parameter="${paramType}"]`);
                 if (!container) continue;
+                container.innerHTML = ''; // Clear previous options if any
 
                 optionsConfig[paramType].forEach(option => {
                     const card = document.createElement('div');
-                    // Adjusted padding for smaller cards on mobile, and aspect ratio
                     card.className = 'card p-2 sm:p-3 md:p-4 rounded-lg cursor-pointer text-center flex flex-col items-center justify-center aspect-[4/3] sm:aspect-square';
                     card.dataset.value = option.name;
 
@@ -206,39 +479,32 @@
                         const imgEl = document.createElement('img');
                         imgEl.src = option.img;
                         imgEl.alt = option.name;
-                        // Adjusted image max height for smaller screens
                         imgEl.className = 'w-full h-auto object-contain rounded-md mb-1 max-h-[60px] sm:max-h-[70px] md:max-h-20';
                         imgEl.onerror = () => { imgEl.src = 'https://placehold.co/100x70/555/FFF?text=Error'; };
                         card.appendChild(imgEl);
                         const nameEl = document.createElement('span');
                         nameEl.textContent = option.name;
-                        // Adjusted text size for smaller screens
                         nameEl.className = 'text-xs sm:text-sm font-medium text-gray-200 mt-1';
                         card.appendChild(nameEl);
                     } else if (option.color) {
                         const colorSwatch = document.createElement('div');
-                        // Adjusted swatch size for smaller screens
                         colorSwatch.className = `w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full mb-1 sm:mb-2 ${option.color}`;
                         card.appendChild(colorSwatch);
                         const nameEl = document.createElement('span');
                         nameEl.textContent = option.name;
-                        // Adjusted text size for smaller screens
                         nameEl.className = 'text-xs sm:text-sm font-medium text-gray-200 mt-1';
                         card.appendChild(nameEl);
-                    } else { // Icon based
-                        // Adjusted icon and text size for smaller screens
+                    } else { 
                         card.innerHTML = `<div class="text-2xl sm:text-3xl md:text-4xl mb-1">${option.icon || '❓'}</div><span class="text-xs sm:text-sm font-medium text-gray-200">${option.name}</span>`;
                     }
                     
-                    card.addEventListener('click', () => handleSelection(paramType, option.name, card, container));
+                    card.addEventListener('click', () => handleGeneratorSelection(paramType, option.name, card, container));
                     container.appendChild(card);
                 });
             }
         }
 
-        // --- Handle Selection ---
-        function handleSelection(paramType, value, selectedCard, container) {
-            // Allow deselecting by clicking the same card again
+        function handleGeneratorSelection(paramType, value, selectedCard, container) {
             if (selectedParameters[paramType] === value) {
                 selectedParameters[paramType] = null;
                 selectedCard.classList.remove('selected');
@@ -248,101 +514,91 @@
                 allCards.forEach(c => c.classList.remove('selected'));
                 selectedCard.classList.add('selected');
             }
-            console.log('Selected Parameters:', selectedParameters);
         }
-
-        // --- Event Listeners ---
-        document.addEventListener('DOMContentLoaded', () => {
-            populateOptions();
-
-            const generateButton = document.getElementById('generate-concept');
+        
+        document.getElementById('generate-concept').addEventListener('click', async () => {
+            const keyElement = document.getElementById('keyElement').value.trim();
+            const gameTitle = document.getElementById('gameTitle').value.trim();
             const resultsSection = document.getElementById('results');
             const loadingIndicator = document.getElementById('loading-indicator');
             const conceptOutput = document.getElementById('concept-output');
             const errorMessage = document.getElementById('error-message');
 
-            generateButton.addEventListener('click', async () => {
-                const keyElement = document.getElementById('keyElement').value.trim();
-                const gameTitle = document.getElementById('gameTitle').value.trim();
-
-                // Updated validation: Check if ANY parameter is selected OR if custom details are filled
-                const anyParameterSelected = Object.values(selectedParameters).some(param => param !== null);
-                if (!anyParameterSelected && !keyElement && !gameTitle) {
-                    errorMessage.textContent = "Please select at least one option or provide some custom details.";
-                    errorMessage.classList.remove('hidden');
-                    resultsSection.classList.remove('hidden'); 
-                    conceptOutput.classList.add('hidden');
-                    loadingIndicator.classList.add('hidden');
-                    resultsSection.scrollIntoView({ behavior: 'smooth' });
-                    return;
-                }
-                
-                resultsSection.classList.remove('hidden');
-                loadingIndicator.classList.remove('hidden');
-                conceptOutput.textContent = '';
+            const anyParameterSelected = Object.values(selectedParameters).some(param => param !== null);
+            if (!anyParameterSelected && !keyElement && !gameTitle) {
+                errorMessage.textContent = "Please select at least one option or provide some custom details.";
+                errorMessage.classList.remove('hidden');
+                resultsSection.classList.remove('hidden'); 
                 conceptOutput.classList.add('hidden');
-                errorMessage.classList.add('hidden');
+                loadingIndicator.classList.add('hidden');
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            
+            resultsSection.classList.remove('hidden');
+            loadingIndicator.classList.remove('hidden');
+            conceptOutput.textContent = '';
+            conceptOutput.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
 
-                let prompt = "Generate a creative mobile game concept with the following characteristics:\n";
-                if (selectedParameters.genre) prompt += `- Genre: ${selectedParameters.genre}\n`;
-                if (selectedParameters.artStyle) prompt += `- Art Style: ${selectedParameters.artStyle}\n`;
-                if (selectedParameters.theme) prompt += `- Theme: ${selectedParameters.theme}\n`;
-                if (selectedParameters.colorScheme) prompt += `- Desired Color Scheme: ${selectedParameters.colorScheme}\n`;
-                if (keyElement) prompt += `- Key Element/Character: "${keyElement}"\n`;
-                if (gameTitle) {
-                    prompt += `- Tentative Game Title: "${gameTitle}" (If good, use it. Otherwise, suggest a new one based on the concept).\n`;
-                } else {
-                    prompt += `- Suggest a catchy Game Title.\n`;
-                }
-                prompt += "\nThe concept should be detailed and engaging. Include:\n1. A catchy Game Title.\n2. A short, engaging Description (2-4 sentences).\n3. Two to three Core Gameplay Mechanics (be specific).\n4. Target Audience (e.g., casual players, puzzle enthusiasts, mid-core strategy fans).\n5. A potential Monetization idea (e.g., cosmetic IAPs, ad-supported, premium).\n6. A Unique Selling Proposition (USP) - what makes it stand out?";
+            let prompt = "Generate a creative mobile game concept with the following characteristics:\n";
+            if (selectedParameters.genre) prompt += `- Genre: ${selectedParameters.genre}\n`;
+            if (selectedParameters.artStyle) prompt += `- Art Style: ${selectedParameters.artStyle}\n`;
+            if (selectedParameters.theme) prompt += `- Theme: ${selectedParameters.theme}\n`;
+            if (selectedParameters.colorScheme) prompt += `- Desired Color Scheme: ${selectedParameters.colorScheme}\n`;
+            if (keyElement) prompt += `- Key Element/Character: "${keyElement}"\n`;
+            if (gameTitle) {
+                prompt += `- Tentative Game Title: "${gameTitle}" (If good, use it. Otherwise, suggest a new one based on the concept).\n`;
+            } else {
+                prompt += `- Suggest a catchy Game Title.\n`;
+            }
+            prompt += "\nThe concept should be detailed and engaging. Include:\n1. A catchy Game Title.\n2. A short, engaging Description (2-4 sentences).\n3. Two to three Core Gameplay Mechanics (be specific).\n4. Target Audience (e.g., casual players, puzzle enthusiasts, mid-core strategy fans).\n5. A potential Monetization idea (e.g., cosmetic IAPs, ad-supported, premium).\n6. A Unique Selling Proposition (USP) - what makes it stand out?";
+            
+            try {
+                let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                const payload = { contents: chatHistory };
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 
-                console.log("Sending prompt to LLM:", prompt);
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-                try {
-                    let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-                    const payload = { contents: chatHistory };
-                    const apiKey = ""; 
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-                    
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('API Error:', errorData);
-                        throw new Error(`API request failed with status ${response.status}: ${errorData?.error?.message || 'Unknown error'}`);
-                    }
-
-                    const result = await response.json();
-                    console.log("LLM Raw Response:", result);
-
-                    loadingIndicator.classList.add('hidden');
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        conceptOutput.textContent = text;
-                        conceptOutput.classList.remove('hidden');
-                    } else {
-                         // Check for safety ratings or other reasons for empty candidates
-                        if (result.candidates && result.candidates.length > 0 && result.candidates[0].finishReason) {
-                             throw new Error(`Content generation stopped. Reason: ${result.candidates[0].finishReason}. ${result.candidates[0].safetyRatings ? JSON.stringify(result.candidates[0].safetyRatings) : ''}`);
-                        }
-                        throw new Error("No valid content received from LLM. The response might have been blocked or empty.");
-                    }
-                } catch (error) {
-                    console.error('Error generating concept:', error);
-                    loadingIndicator.classList.add('hidden');
-                    conceptOutput.classList.add('hidden');
-                    errorMessage.textContent = `Failed to generate concept. ${error.message}. Please try again or adjust your inputs.`;
-                    errorMessage.classList.remove('hidden');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API request failed: ${errorData?.error?.message || response.status}`);
                 }
-            });
+
+                const result = await response.json();
+                loadingIndicator.classList.add('hidden');
+                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                    conceptOutput.textContent = result.candidates[0].content.parts[0].text;
+                    conceptOutput.classList.remove('hidden');
+                } else {
+                    throw new Error(`No valid content. Reason: ${result.candidates?.[0]?.finishReason || 'Unknown'}`);
+                }
+            } catch (error) {
+                console.error('Error generating concept:', error);
+                loadingIndicator.classList.add('hidden');
+                conceptOutput.classList.add('hidden');
+                errorMessage.textContent = `Failed to generate concept. ${error.message}. Try again.`;
+                errorMessage.classList.remove('hidden');
+            }
         });
+
+        // --- Initial Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateGeneratorOptions();
+            showPage('shorts-view'); // Start on Shorts view
+
+            // Global tap for fullscreen (can be triggered from either page, once)
+            // Using 'click' on body for simplicity here, but 'pointerdown' is also good.
+            document.body.addEventListener('click', requestAppFullScreen, { once: true });
+        });
+
     </script>
 </body>
 </html>
