@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dinosaur Game</title>
+    <meta name="keywords" content="Dinosaur Game">
+	<meta http-equiv="Accept-CH" content="DPR">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="HandheldFriendly" content="true">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="mask-icon" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game.png" color="#6842ff">
+    <link rel="icon" type="image/png" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game-32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game-16.png" sizes="16x16">
+    <link rel="shortcut icon" sizes="196x196" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game-196.png">
+    <meta name="msapplication-TileColor" content="#603cba">
+    <link rel="icon" type="image/x-icon" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game-48.png" sizes="48x48">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="twitter:card" content="summary_large_image">
+    <link rel="shortcut icon" href="https://dinosaurgame3d.com/imgs/logo-dinosaur-game-16.png" type="image/png">
+    <meta name="description" content="Dinosaur Game is a wonderful running game that invites you to embark on an exciting adventure with a green dinosaur. Run as far as possible in the desert.">
+	<link rel="canonical" href="https://dinosaurgame3d.com/">
+    <meta name="msapplication-TileImage" content="/imgs/logo-dinosaur-game-144.png">
+    <meta name="apple-mobile-web-app-title" content="Dinosaur Game">
+    <meta property="og:url" content="https://dinosaurgame3d.com">
+    <meta property="og:title" content="Dinosaur Game">
+    <meta property="og:description" content="Dinosaur Game is a wonderful running game that invites you to embark on an exciting adventure with a green dinosaur. Run as far as possible in the desert.">
+    <meta property="og:image" content="/imgs/logo-dinosaur-game.png">
+    <meta property="og:type" content="game">
+    <meta property="twitter:url" content="https://dinosaurgame3d.com">
+    <meta property="twitter:title" content="Dinosaur Game">
+    <meta property="twitter:description" content="Dinosaur Game is a wonderful running game that invites you to embark on an exciting adventure with a green dinosaur. Run as far as possible in the desert.">
+    <meta property="twitter:image" content="/imgs/logo-dinosaur-game.png">
+	
+	<script async="" src="./Dinosaur Game_files/js"></script>
+	<script>window.dataLayer = window.dataLayer || [];
+	 function gtag() {
+	 dataLayer.push(arguments);
+	 }
+	 gtag('js', new Date());
+
+	 gtag('config', 'G-5TKLJ0GRMR');</script>
+	
+	
+	<link rel="stylesheet" href="./Dinosaur Game_files/style.css">
+    <style>
+      html {
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        background: #000;
+      }
+      #gameContainer {
+        width: 100vw;
+        height: 100vh;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* try to handle mobile dialog */
+      canvas + * {
+        z-index: 2;
+      }
+      .logo {
+          display: block;
+          max-width: 100vw;
+          max-height: 70vh;
+      }
+
+      .progress {
+          margin: 1.5em;
+          border: 1px solid white;
+          width: 50vw;
+          display: none;
+      }
+      .progress .full {
+          margin: 2px;
+          background: white;
+          height: 1em;
+          transform-origin: top left;
+      }
+
+      #loader {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+		background: #000;		
+      }
+
+      .spinner,
+      .spinner:after {
+        border-radius: 50%;
+        width: 5em;
+        height: 5em;
+      }
+      .spinner {
+        margin: 10px;
+        font-size: 10px;
+        position: relative;
+        text-indent: -9999em;
+        border-top: 1.1em solid rgba(255, 255, 255, 0.2);
+        border-right: 1.1em solid rgba(255, 255, 255, 0.2);
+        border-bottom: 1.1em solid rgba(255, 255, 255, 0.2);
+        border-left: 1.1em solid #ffffff;
+        transform: translateZ(0);
+        animation: spinner-spin 1.1s infinite linear;
+      }
+      @keyframes spinner-spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div id="gameContainer" style="padding: 0px; margin: 0px; border: 0px; position: relative; background: rgb(35, 31, 32);"><canvas id="#canvas" width="1738" height="1538" style="width: 100%; height: 100%; cursor: default;"></canvas></div>
+    <div id="loader" style="display: none;">
+      <img class="logo" src="./Dinosaur Game_files/logo.png">
+      <div class="spinner" style="display: none;"></div>
+      <div class="progress" style="display: block;"><div class="full" style="transform: scaleX(1);"></div></div>
+    </div>
+	
+	<main>
+		<div id="popupAboutGame" class="container-popup-aboutgame">
+			<div class="content-popup-aboutgame">
+				<button onclick="HiddenPopup()" class="btn-close-popup"><span class="btn-icon">x</span> <span class="btn-text">Close</span></button>
+				<div class="popup-aboutgame">
+					<div class="popup-content">
+						<h1>Dinosaur Game</h1>
+						<h2>General information about Dinosaur Game</h2>
+						<p>Dinosaur Game is a wonderful running game that invites you to embark on an exciting adventure with a green dinosaur. Run as far as possible in the desert.</p>
+						<p>The 2D version of this game must be super famous to millions of people from all over the world. With the aim of entertaining people when they have an Internet disconnection issue, Google created the 2D version of Dinosaur Game. It is available on the Google Chrome web browser. Although this is a simple game that is easy to play, it surprisingly attracts many players. It is being played 270 million times a month and receives many flattering compliments.</p>
+						<h2>Dinosaur Game 3D</h2>
+						<p>Dinosaur Game 3D is an exciting runner game that features awesome 3D graphics. This game requires you to explore the desert and join an endless running race. Unlike the original version, the graphics in this game are 3D pixels. In addition, everything in this game is colored. For example, during the adventure, you can see the yellow sky and sand, green cactuses, brown pterodactyls, and pink flowers. and so on. This will help to boost your playing experience when you play this game. In addition, the developer added catchy music and funny sound effects which help to lift your mood during the adventure.</p>
+						<h2>Dinosaur Game Online</h2>
+						<p>If you want to find an interesting online game, Dinosaur Game Online is the best choice. This game is also about an exciting adventure of a little dinosaur in the prehistoric age. However, a unique thing about this game is that it can be played online. This game is available on our web browser now. Therefore, even when you have an Internet connection, you can use your PC or mobile device to play this game. Therefore, you can play this game anytime and anywhere to relax and have fun. Do not hesitate to save this game in your game arsenal and play it if you have free time now.</p>
+						<h2>Addictive Gameplay of Dinosaur Game</h2>
+						<p>The core of this running game lies in its engaging gameplay which attracts many players from all over the world. In addition, its intuitive control is also an attractive thing.</p>
+						<h3>An adventure of a little dinosaur</h3>
+						<p>This game will take you back to the prehistoric ages when dinosaurs are popular on Earth. There is a little green dinosaur that wants to start an exciting adventure in the desert. When you play this game, you will transform into this little dinosaur and explore the vast desert. However, remember that you should enter your nickname first. Then, click the left mouse button to start your adventure. In this adventure, you will run unstoppably toward reaching the end of the desert. Your score will constantly increase while you are running. Therefore, I encourage you to run the furthest distance to gain the highest possible score. So, what is the end of this Dinosaur Game? The answer is that there is literally no end in this game. If you are an experienced player and can gain 99999 points, the game will be reset automatically. Then, you will start your adventure again.</p>
+						<p>While running, you also need to take caution because it is said that the desert hides various dangers. These obstacles can stop your journey if you crash into them. If you want to evade these dangers, you should jump as high as possible or duck. It is important for you to jump or duck in time. Furthermore, your speed will gradually increase when you run further. Running at a fast speed will be a challenge for you because you will have little time to plan for the next moves. Therefore, I advise you to utilize your quick reflexes, quick fingers, and sharp eyes and pay high concentration during this journey. Play the game now and let’s see how far you can go. Participating in the adventure in this game is also an opportunity for you to hone your reflexes and improve your hand-eye coordination.</p>
+						<h3>Challenges during the journey of the dinosaur</h3>
+						<p>Encountering dangers is an unavoidable thing in every adventure. Similarly, in the adventure of this game, you also meet many hazards that stop you from running far in the desert. Here is the list of challenges during your journey.</p>
+						<ul>
+						<li>Cactuses: Cactuses are common plants in the desert. During the path, you can see a cactus or a cactus bush. Be careful with the cactus bushes. You can crash into them if you jump too long or too late.</li>
+						<li>Pterodactyls: The only animal that will hurt you in the desert is pterodactyls. They will fly toward you. Moreover, you will fly at different heights. If you do not jump or couch in time, you can hit these pterodactyls easily and the game is over.</li>
+						<li>The Darkness: The time in this game is simulated in real life. Therefore, there are days and nights. When it is dark, your vision will be limited. Therefore, it may be challenging for you to see the further cactuses or birds. If you do not look carefully, you can hit the dangers during the path.</li>
+						</ul>
+						<h3>How to control</h3>
+						<p>Click the left mouse button to start the race.</p>
+						<p>Press an up arrow key, a W key, or the spacebar to jump.</p>
+						<p>Press a down arrow key or an S key to duck.</p>
+						<h3>The leaderboard</h3>
+						<p>What sets this running game apart from other running games is the leaderboard. After you end a journey, your best score will be recorded automatically. You can open the leaderboard to know your rank and your highest score. Besides your rank and highest score, the leaderboard also presents the names, ranks, and scores of the other 9 top players from all over the world. It means that if you are out of the top 10, your name, rank, and score will not be shown on the leaderboard. Note that the statistics in this leaderboard are updated every minute.</p>
+						<h2>Effective strategies to beat Dinosaur Game</h2>
+						<p>Even though this game features simple mechanics, this game will be a little hard for inexperienced players. If you are a newbie, you need only quick reflexes but also effective strategies. Building your own tactics before starting your adventure is another key that helps you run the furthest distance and gain the highest score. If you still have no idea in your mind, let’s read some strategies that I want to suggest to you. Hope that the following tactics will assist you a lot during your adventure.</p>
+						<h3>Do not duck too regularly</h3>
+						<p>When you meet the pterodactyls, of course, you need to duck to evade them. However, I do not think ducking too regularly is a great way to evade the dangers. Some pterodactyls fly at a low height, so you can easily crash into them even when you duck. Therefore, you should jump instead of ducking to avoid hitting low-flying pterodactyls. Moreover, If you duck, it may be hard for you to react quickly to dodge the next obstacle. For example, when you need to evade a pterodactyl and then a cactus, it should jump two times instead of jumping after ducking.</p>
+						<h3>Look ahead at all times and plan your moves in advance</h3>
+						<p>Because the obstacles will appear constantly, you need to look ahead at all times to know which next obstacle you need to dodge. As soon as you see the next obstacle, you need to plan your next move which is jumping or ducking. If you want to jump, place your finger on the up arrow key and then press it when you approach the obstacle. Similarly, if you want to duck, place your finger on the down arrow key and then press it when you approach the danger. Planning your moves in advance is the best way to overcome dangers safely and run further.</p>
+						<h3>Pay high concentration and be patient</h3>
+						<p>Besides necessary skills, you also need to be high concentration when playing this game. If you are distracted a little bit, you will not see the upcoming obstacle and hit it. Therefore, do not take your eyes off the screen at any second. Furthermore, your speed will accelerate as you travel. The number of hazards also increases when you run further. These things can make you panic and hit obstacles along the way easily. However, do not worry and try to keep patient at all times. You should focus on timing and take time to jump or duck perfectly.</p>
+						<h3>Act like you are standing instead of running</h3>
+						<p>The biggest mistake of beginners is to act like they are running in the desert. However, one tip for you is to act like you are standing and the path is running. This helps to reduce your pressure when running and overcoming an unlimited number of obstacles. Just think that you are standing and all you need to do is to jump or duck.</p>
+						<p>That’s all the strategies that I want to recommend to you. However, you should remember that besides applying these strategies, you also need to play this game again and again to practice your skills. In summary, strategies, practicing, and quick reflexes are factors that help you to earn the highest score in this game.</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<section></section>
+	</main>
+	
+	<div id="links">
+		<ul>
+			<li><p id="aboutGame">About Game</p></li>
+		</ul>
+	</div>
+  
+
+  <script src="./Dinosaur Game_files/UnityLoader.js"></script>
+  <script>
+   UnityLoader.compatibilityCheck=function(e,t,r){t();};
+  var gameInstance = UnityLoader.instantiate("gameContainer", "Build/dinosaurgame3d.com.json", {onProgress: UnityProgress});
+  function UnityProgress(gameInstance, progress) {
+    if (!gameInstance.Module) {
+      return;
+    }
+    const loader = document.querySelector("#loader");
+    if (!gameInstance.progress) {
+      const progress = document.querySelector("#loader .progress");
+      progress.style.display = "block";
+      gameInstance.progress = progress.querySelector(".full");
+      loader.querySelector(".spinner").style.display = "none";
+    }
+    gameInstance.progress.style.transform = `scaleX(${progress})`;
+    if (progress === 1 && !gameInstance.removeTimeout) {
+      gameInstance.removeTimeout = setTimeout(function() {
+          loader.style.display = "none";
+      }, 2000);
+    }
+  }
+  </script>
+	<script>
+		"use strict";
+		let aboutGame = document.getElementById('aboutGame');
+		let popupAboutGame = document.getElementById('popupAboutGame');
+
+		aboutGame.addEventListener('click', function () {
+			popupAboutGame.classList.add('set-scale');
+
+		});
+		function HiddenPopup() {
+			popupAboutGame.classList.remove('set-scale');
+		}
+		function HiddenPopup() {
+			popupAboutGame.classList.remove('set-scale');
+		}
+		
+		function onStartGame() {
+		 console.log('onStartGame');
+		}
+		
+		function onDie() {
+		}
+		
+	</script>	
+
+
+
+<script src="blob:https://dinosaurgame3d.com/94b53fbc-6a65-40cb-9ee4-b078bec2781e" id="17a2d1d6d38a306cdce8b0f0d9e1cee5"></script></body></html>
