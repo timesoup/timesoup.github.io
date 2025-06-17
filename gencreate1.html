@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Creator Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #E0E0E0;
+        }
+
+        .material-input:focus-within label,
+        .material-input .has-content ~ label {
+            transform: translateY(-1.75rem) scale(0.75);
+            color: #8B5CF6; /* Violet-500 */
+        }
+
+        .control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .control-panel::-webkit-scrollbar-track {
+            background: #1f1f1f;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb {
+            background-color: #4a4a4a;
+            border-radius: 3px;
+        }
+        
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+        
+        .option-btn.active {
+            background-color: #8B5CF6; /* Violet-500 */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+
+        #generate-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        #generate-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .iframe-container {
+            background: #1f1f1f;
+            border: 1px solid #333;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Left Control Panel -->
+    <aside class="w-full lg:w-1/3 xl:w-1/4 bg-[#181818] p-6 lg:p-8 flex flex-col h-screen">
+        <div class="flex items-center mb-8">
+            <svg class="w-8 h-8 text-violet-400 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <h1 class="text-2xl font-bold text-white tracking-tight">GameGen AI</h1>
+        </div>
+        
+        <div class="control-panel flex-grow overflow-y-auto -mr-4 pr-4">
+            <!-- Game Description -->
+            <div class="relative material-input mb-8">
+                <textarea id="game-description" class="has-content bg-[#2a2a2a] w-full p-4 rounded-lg border border-transparent focus:border-violet-500 focus:ring-0 focus:outline-none transition duration-200" rows="4">A 2D platformer where a cybernetically enhanced gopher digs for rare space minerals on alien planets, avoiding subterranean monsters and rival space prospectors.</textarea>
+                <label for="game-description" class="absolute top-4 left-4 text-gray-400 pointer-events-none transition-all duration-200">Describe your game...</label>
+            </div>
+
+            <!-- Selections -->
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Genre</h2>
+                    <div class="flex flex-wrap gap-2" id="genre-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Platformer</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">RPG</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Puzzle</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Shooter</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Theme</h2>
+                    <div class="flex flex-wrap gap-2" id="theme-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Sci-Fi</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Fantasy</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Horror</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Adventure</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Art Style</h2>
+                    <div class="flex flex-wrap gap-2" id="art-style-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Pixel Art</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Vector</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Low Poly</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Cartoon</button>
+                    </div>
+                </div>
+                 <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Color Scheme</h2>
+                    <div class="flex flex-wrap gap-2" id="color-scheme-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Vibrant</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Pastel</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Neon</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Monochrome</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <button id="generate-btn" class="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Generate Game
+            </button>
+        </div>
+    </aside>
+
+    <!-- Right Iframe Content -->
+    <main class="w-full lg:w-2/3 xl:w-3/4 flex-grow p-4 lg:p-6">
+        <div class="iframe-container w-full h-full rounded-xl overflow-hidden shadow-2xl">
+            <iframe id="game-preview" src="gengame1.html" class="w-full h-full border-0"></iframe>
+        </div>
+    </main>
+
+    <script>
+        // Script for handling text area label animation
+        const textarea = document.getElementById('game-description');
+        textarea.addEventListener('input', () => {
+            if (textarea.value) {
+                textarea.classList.add('has-content');
+            } else {
+                textarea.classList.remove('has-content');
+            }
+        });
+
+        // Script for handling active state on option buttons
+        const optionGroups = ['genre-options', 'theme-options', 'art-style-options', 'color-scheme-options'];
+        optionGroups.forEach(groupId => {
+            const container = document.getElementById(groupId);
+            container.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    // Remove active class from siblings
+                    Array.from(container.children).forEach(child => child.classList.remove('active'));
+                    // Add active class to the clicked button
+                    e.target.classList.add('active');
+                }
+            });
+        });
+
+        // Script for the generate button (reloads the iframe for now)
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('game-preview');
+            // Add a little animation effect on reload
+            iframe.style.animation = 'none';
+            setTimeout(() => {
+                iframe.src += ''; // This reloads the iframe
+                iframe.style.animation = 'fadeIn 1s ease-in-out';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
