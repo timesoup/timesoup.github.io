@@ -116,11 +116,6 @@
     position: relative; /* Add this to make the overlay position relative to the app container */
 }
 
-#createOverlay {
-    /* The height is calculated to leave space for the bottom nav bar */
-    height: calc(100% - 54px); /* Adjust 54px if your nav bar height changes */
-}
-
         
         .iframe-content {
             width: 100%;
@@ -363,6 +358,15 @@
             </button>
             <button class="nav-button" aria-label="You"><span class="icon">👤</span><span>You</span></button>
         </div>
+
+<div id="createOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 54px); background-color: rgba(0,0,0,0.9); z-index: 25; flex-direction: column;">
+    <div style="padding: 10px; text-align: right;">
+        <button id="closeCreateOverlay" style="color: white; font-size: 24px; background: none; border: none; cursor: pointer;">&times;</button>
+    </div>
+    <iframe id="createIframe" src="about:blank" style="flex-grow: 1; border: none; width: 100%;"></iframe>
+</div>
+
+        
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -408,11 +412,6 @@
         const homeButton = document.getElementById('homeButton');
         const swipeCaptureLayer = document.getElementById('swipeCaptureLayer');
         const actionsSidebar = document.querySelector('.actions-sidebar');
-        const createButton = document.getElementById('createButton');
-        const createOverlay = document.getElementById('createOverlay');
-        const closeCreateOverlay = document.getElementById('closeCreateOverlay');
-        const createIframe = document.getElementById('createIframe');
-
 
         // --- Swipe Control State ---
         let touchStartY = 0;
@@ -612,6 +611,12 @@
 
         // --- Event Listeners Setup ---
         document.addEventListener('DOMContentLoaded', () => {
+            const createButton = document.getElementById('createButton');
+            const createOverlay = document.getElementById('createOverlay');
+            const closeCreateOverlay = document.getElementById('closeCreateOverlay');
+            const createIframe = document.getElementById('createIframe');
+
+
             // --- App Start Triggers ---
             startGameTrigger?.addEventListener('click', (e) => { e.preventDefault(); startApp(); });
             googleLogo?.addEventListener('click', (e) => { e.preventDefault(); requestFullScreen(); });
@@ -654,12 +659,6 @@
         });
     </script>
 
-    <div id="createOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 25; flex-direction: column;">
-    <div style="padding: 10px; text-align: right;">
-        <button id="closeCreateOverlay" style="color: white; font-size: 24px; background: none; border: none; cursor: pointer;">&times;</button>
-    </div>
-    <iframe id="createIframe" src="about:blank" style="flex-grow: 1; border: none; width: 100%;"></iframe>
-</div>
 
 </body>
 </html>
