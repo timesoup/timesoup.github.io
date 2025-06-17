@@ -321,9 +321,6 @@
             <div id="uiOverlay">
                 <div class="actions-sidebar">
                     <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
-                    <div id="scrollUpButton" class="action-button"><i class="fas fa-arrow-up"></i><span>Up</span></div>
-                    <div id="scrollDownButton" class="action-button"><i class="fas fa-arrow-down"></i><span>Down</span></div>
-
                     <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
                     <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
                     <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
@@ -400,6 +397,7 @@
         const googleLogo = document.getElementById('googleLogo');
         const homeButton = document.getElementById('homeButton');
         const swipeCaptureLayer = document.getElementById('swipeCaptureLayer');
+        const actionsSidebar = document.querySelector('.actions-sidebar');
 
         // --- Swipe Control State ---
         let touchStartY = 0;
@@ -540,6 +538,37 @@
         }
 
         // --- Scroll and Navigation Logic ---
+        // --- Touch Swipe Listeners for Sidebar---
+        actionsSidebar.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isSwiping = true;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = swipeContainer.scrollTop;
+                swipeContainer.style.scrollBehavior = 'auto'; // Disable smooth scroll during drag
+            }
+        }, { passive: true });
+
+        actionsSidebar.addEventListener('touchmove', (e) => {
+            if (!isSwiping || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchCurrentY - touchStartY;
+            swipeContainer.scrollTop = touchStartScrollTop - deltaY;
+        }, { passive: false });
+
+        actionsSidebar.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            swipeContainer.style.scrollBehavior = 'smooth'; // Re-enable smooth scroll for snap
+            const swipeDistance = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
+                scrollToItem(currentItemIndex + (swipeDistance < 0 ? 1 : -1));
+            } else {
+                scrollToItem(currentItemIndex);
+            }
+        });
+
         function handleScrollEnd() {
             const newIndex = Math.round(swipeContainer.scrollTop / swipeContainer.offsetHeight);
             if (newIndex !== currentItemIndex && newIndex >= 0 && newIndex < contentItems.length) {
@@ -571,8 +600,6 @@
             // --- App Start Triggers ---
             startGameTrigger?.addEventListener('click', (e) => { e.preventDefault(); startApp(); });
             googleLogo?.addEventListener('click', (e) => { e.preventDefault(); requestFullScreen(); });
-            const scrollUpButton = document.getElementById('scrollUpButton');
-            const scrollDownButton = document.getElementById('scrollDownButton');
 
             // --- Home button listener ---
             homeButton?.addEventListener('click', () => {
@@ -589,15 +616,8 @@
             profileFullscreenButton?.addEventListener('click', requestFullScreen);
             
 
-            scrollUpButton?.addEventListener('click', () => {
-                scrollToItem(currentItemIndex - 1);
-            });
-
-            scrollDownButton?.addEventListener('click', () => {
-                scrollToItem(currentItemIndex + 1);
-            });
-
         });
     </script>
 </body>
 </html>
+�
