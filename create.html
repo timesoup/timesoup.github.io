@@ -235,7 +235,7 @@
 </head>
 <body>
 
-    <div id="shorts-view" class="page-view active">
+    <div id="shorts-view" class="page-view">
         <div class="shorts-background-video"></div>
         <div class="shorts-ui-overlay">
             <div></div> 
@@ -317,7 +317,7 @@
         </button>
     </div>
 
-    <div id="generator-view" class="page-view">
+    <div id="generator-view" class="page-view active">
         <header class="header sticky top-0 z-50 p-4 shadow-md w-full">
             <div class="container mx-auto flex items-center justify-between">
                 <button id="back-to-shorts-btn" class="text-white p-2 rounded-md hover:bg-gray-700">
@@ -592,7 +592,7 @@
         // --- Initial Setup ---
         document.addEventListener('DOMContentLoaded', () => {
             populateGeneratorOptions();
-            showPage('shorts-view'); // Start on Shorts view
+            showPage('generator-view'); // Start on Generator view
 
             // Global tap for fullscreen (can be triggered from either page, once)
             // Using 'click' on body for simplicity here, but 'pointerdown' is also good.
