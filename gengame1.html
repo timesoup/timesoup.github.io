@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gopher Galactic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0d0c1d;
+            color: #e0f2e9;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        canvas {
+            background-color: #1a1a2e;
+            display: block;
+            border: 4px solid #9a8c98;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(186, 104, 200, 0.5);
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+        .ui-panel {
+            background: #22223b;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: 2px solid #9a8c98;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+        }
+        .controls {
+             background: #22223b;
+             padding: 12px 24px;
+             border-radius: 8px;
+             border: 2px solid #9a8c98;
+             text-align: center;
+        }
+        .key {
+            background-color: #4a4e69;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 0 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="text-4xl mb-4 text-center tracking-wider">Gopher Galactic</h1>
+        <div class="ui-panel">
+            <div id="score">Minerals: 0 / 8</div>
+            <div id="message"></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="controls">
+            Controls: <span class="key">←</span> <span class="key">→</span> Move | <span class="key">↑</span> Jump | <span class="key">↓</span> Dig
+        </div>
+    </div>
+
+    <script>
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const messageEl = document.getElementById('message');
+
+        const TILE_SIZE = 40;
+        const GRAVITY = 0.5;
+        const PLAYER_SPEED = 5;
+        const JUMP_POWER = -12;
+
+        // Tile Types
+        const EMPTY = 0;
+        const DIRT = 1;
+        const ROCK = 2;
+        const MINERAL = 3;
+        const LAVA = 4;
+
+        // Game State
+        let gameState = 'playing';
+        let mineralsCollected = 0;
+        const totalMinerals = 8;
+        
+        // --- Level Design ---
+        // A 2D array representing the game world grid
+        const level = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,2,2,2,2,0,0,0,0,0,0,0,0],
+            [2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2],
+            [2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+            [2,1,3,1,1,1,1,1,2,2,2,2,1,1,1,3,1,1,1,2],
+            [2,1,1,1,1,1,1,1,2,0,0,2,1,1,1,1,1,1,1,2],
+            [2,1,1,1,1,3,1,1,2,0,0,2,1,3,1,1,1,1,1,2],
+            [2,2,2,1,1,1,1,1,2,0,0,2,1,1,1,1,2,2,2,2],
+            [0,0,2,1,1,1,1,1,1,1,1,1,1,1,1,1,2,0,0,0],
+            [0,0,2,1,3,1,1,2,2,2,2,2,2,1,3,1,2,0,0,0],
+            [0,0,2,1,1,1,1,2,0,0,0,0,2,1,1,1,2,0,0,0],
+            [2,2,2,2,1,1,1,2,0,0,0,0,2,1,1,1,2,2,2,2],
+            [2,3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,1,2],
+            [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+        ];
+
+        // --- Player Object ---
+        const player = {
+            x: 100,
+            y: 50,
+            width: TILE_SIZE - 10,
+            height: TILE_SIZE - 10,
+            vx: 0,
+            vy: 0,
+            onGround: false,
+            isDigging: false,
+            digTimer: 0
+        };
+
+        // --- Enemy Objects ---
+        const enemies = [
+            { x: 250, y: 370, width: TILE_SIZE, height: TILE_SIZE, vx: -1.5, initialX: 250, range: 200 },
+            { x: 500, y: 170, width: TILE_SIZE, height: TILE_SIZE, vx: 1, initialX: 500, range: 150 },
+            { x: 100, y: 490, width: TILE_SIZE, height: TILE_SIZE, vx: 2, initialX: 100, range: 500 },
+        ];
+        
+        // --- Input Handling ---
+        const keys = {
+            left: false,
+            right: false,
+            up: false,
+            down: false
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = true;
+            if (e.key === 'ArrowRight') keys.right = true;
+            if (e.key === 'ArrowUp') keys.up = true;
+            if (e.key === 'ArrowDown') keys.down = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft') keys.left = false;
+            if (e.key === 'ArrowRight') keys.right = false;
+            if (e.key === 'ArrowUp') keys.up = false;
+            if (e.key === 'ArrowDown') keys.down = false;
+        });
+
+        // --- Drawing Functions ---
+        function drawWorld() {
+            for (let row = 0; row < level.length; row++) {
+                for (let col = 0; col < level[row].length; col++) {
+                    const tile = level[row][col];
+                    if (tile === EMPTY) continue;
+
+                    let color;
+                    switch(tile) {
+                        case DIRT: color = '#8a5a44'; break; // Brown
+                        case ROCK: color = '#6c757d'; break; // Grey
+                        case MINERAL: color = '#c9b24b'; break; // Gold
+                        case LAVA: color = '#e25822'; break; // Orange-Red
+                    }
+                    ctx.fillStyle = color;
+                    ctx.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                    // Add a subtle border for texture
+                    if (tile === DIRT || tile === ROCK) {
+                        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+                        ctx.strokeRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+            }
+        }
+        
+        function drawPlayer() {
+            // Main body
+            ctx.fillStyle = '#c77dff'; // Cyber-purple
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            // Goggles
+            ctx.fillStyle = '#00f6ff'; // Cyan
+            ctx.fillRect(player.x + player.width / 4, player.y + 5, player.width / 2, 8);
+        }
+
+        function drawEnemies() {
+            enemies.forEach(enemy => {
+                ctx.fillStyle = '#ff4d6d'; // Monster red
+                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+                // Monster Eyes
+                ctx.fillStyle = 'white';
+                ctx.fillRect(enemy.x + 8, enemy.y + 10, 5, 5);
+                ctx.fillRect(enemy.x + enemy.width - 13, enemy.y + 10, 5, 5);
+            });
+        }
+
+        // --- Update and Physics Functions ---
+        function updatePlayer() {
+            if (gameState !== 'playing') return;
+
+            // Horizontal Movement
+            player.vx = 0;
+            if (keys.left) player.vx = -PLAYER_SPEED;
+            if (keys.right) player.vx = PLAYER_SPEED;
+            player.x += player.vx;
+
+            // Apply Gravity
+            player.vy += GRAVITY;
+            player.y += player.vy;
+            player.onGround = false;
+
+            // Collision Detection with world tiles
+            handleCollisions();
+
+            // Jumping
+            if (keys.up && player.onGround) {
+                player.vy = JUMP_POWER;
+                player.onGround = false;
+            }
+
+            // Digging
+            if (keys.down && player.onGround) {
+                const gridX = Math.floor((player.x + player.width / 2) / TILE_SIZE);
+                const gridY = Math.floor((player.y + player.height) / TILE_SIZE);
+
+                if (gridY + 1 < level.length && level[gridY + 1][gridX] === DIRT) {
+                    level[gridY + 1][gridX] = EMPTY;
+                    // Small hop to prevent getting stuck
+                    player.y -= 5;
+                }
+            }
+            
+            // Prevent falling out of the world
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        function handleCollisions() {
+            let onSolidGround = false;
+
+            for (let row = 0; row < level.length; row++) {
+                for (let col = 0; col < level[row].length; col++) {
+                    const tile = level[row][col];
+                    if (tile === EMPTY) continue;
+
+                    const tileX = col * TILE_SIZE;
+                    const tileY = row * TILE_SIZE;
+
+                    if (
+                        player.x < tileX + TILE_SIZE &&
+                        player.x + player.width > tileX &&
+                        player.y < tileY + TILE_SIZE &&
+                        player.y + player.height > tileY
+                    ) {
+                        // Collision occurred
+                        if (tile === MINERAL) {
+                            level[row][col] = EMPTY;
+                            mineralsCollected++;
+                            updateScore();
+                            continue; // Don't collide with collected minerals
+                        }
+
+                        if (tile === LAVA) {
+                            gameOver('Melted!');
+                            return;
+                        }
+
+                        const overlapX = (player.x + player.width / 2) - (tileX + TILE_SIZE / 2);
+                        const overlapY = (player.y + player.height / 2) - (tileY + TILE_SIZE / 2);
+                        const combinedHalfWidths = (player.width + TILE_SIZE) / 2;
+                        const combinedHalfHeights = (player.height + TILE_SIZE) / 2;
+                        
+                        if (Math.abs(overlapX) < combinedHalfWidths) {
+                             if (overlapY > 0 && player.vy < 0) { // Collision from top
+                                 player.y = tileY + TILE_SIZE;
+                                 player.vy = 0;
+                             } else if (overlapY < 0) { // Collision from bottom (landing)
+                                 player.y = tileY - player.height;
+                                 player.vy = 0;
+                                 onSolidGround = true;
+                             }
+                        }
+
+                        if (Math.abs(overlapY) < combinedHalfHeights - 4) { // -4 to prioritize vertical
+                            if (overlapX > 0) { // Collision from left
+                                player.x = tileX + TILE_SIZE;
+                            } else { // Collision from right
+                                player.x = tileX - player.width;
+                            }
+                            player.vx = 0;
+                        }
+                    }
+                }
+            }
+            player.onGround = onSolidGround;
+        }
+
+
+        function updateEnemies() {
+             if (gameState !== 'playing') return;
+            enemies.forEach(enemy => {
+                enemy.x += enemy.vx;
+                if (enemy.x < enemy.initialX - enemy.range || enemy.x + enemy.width > enemy.initialX + enemy.range) {
+                    enemy.vx *= -1;
+                }
+            });
+        }
+        
+        function checkEnemyCollisions() {
+            if (gameState !== 'playing') return;
+            enemies.forEach(enemy => {
+                 if (
+                    player.x < enemy.x + enemy.width &&
+                    player.x + player.width > enemy.x &&
+                    player.y < enemy.y + enemy.height &&
+                    player.y + player.height > enemy.y
+                ) {
+                   // A simple collision check for game over
+                   gameOver('Caught by a monster!');
+                }
+            });
+        }
+
+        // --- Game State & UI ---
+        function updateScore() {
+            scoreEl.textContent = `Minerals: ${mineralsCollected} / ${totalMinerals}`;
+            if (mineralsCollected >= totalMinerals) {
+                gameWin();
+            }
+        }
+        
+        function gameOver(reason) {
+            if(gameState === 'playing') {
+                gameState = 'gameOver';
+                messageEl.textContent = `Game Over! ${reason}`;
+                console.log('Game Over:', reason);
+            }
+        }
+        
+        function gameWin() {
+             if(gameState === 'playing') {
+                gameState = 'win';
+                messageEl.textContent = 'You Win! All minerals collected!';
+                console.log('You Win!');
+             }
+        }
+
+
+        // --- Main Game Loop ---
+        function gameLoop() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update logic
+            updatePlayer();
+            updateEnemies();
+            checkEnemyCollisions();
+            
+            // Draw elements
+            drawWorld();
+            drawPlayer();
+            drawEnemies();
+            
+            // Request next frame
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- Start Game ---
+        console.log("Starting Gopher Galactic...");
+        updateScore();
+        gameLoop();
+
+    </script>
+</body>
+</html>
