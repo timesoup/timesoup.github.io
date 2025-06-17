@@ -112,6 +112,16 @@
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
+#appContainer {
+    position: relative; /* Add this to make the overlay position relative to the app container */
+}
+
+#createOverlay {
+    /* The height is calculated to leave space for the bottom nav bar */
+    height: calc(100% - 54px); /* Adjust 54px if your nav bar height changes */
+}
+
+        
         .iframe-content {
             width: 100%;
             height: 100%;
@@ -342,7 +352,7 @@
                 </span>
                 <span>Games</span>
             </button>
-            <a href="#" class="nav-button" aria-label="Create">
+            <a href="#" id="createButton" class="nav-button" aria-label="Create">
                 <span class="icon" style="font-size: 28px; border: 1.5px solid #AAAAAA; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; line-height: 28px;">+</span>
             </a>
             <button class="nav-button" aria-label="Subscriptions">
@@ -398,6 +408,11 @@
         const homeButton = document.getElementById('homeButton');
         const swipeCaptureLayer = document.getElementById('swipeCaptureLayer');
         const actionsSidebar = document.querySelector('.actions-sidebar');
+        const createButton = document.getElementById('createButton');
+        const createOverlay = document.getElementById('createOverlay');
+        const closeCreateOverlay = document.getElementById('closeCreateOverlay');
+        const createIframe = document.getElementById('createIframe');
+
 
         // --- Swipe Control State ---
         let touchStartY = 0;
@@ -614,9 +629,37 @@
             // --- UI button listeners ---
             fullscreenButton?.addEventListener('click', requestFullScreen);
             profileFullscreenButton?.addEventListener('click', requestFullScreen);
+
+
+            // --- Show Create Overlay ---
+            createButton?.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent the link from navigating
+                createIframe.src = 'create.html'; // Set the iframe src
+                createOverlay.style.display = 'flex'; // Show the overlay
+            });
             
+            // --- Hide Create Overlay ---
+            closeCreateOverlay?.addEventListener('click', () => {
+                createOverlay.style.display = 'none'; // Hide the overlay
+                createIframe.src = 'about:blank'; // Reset the iframe to save memory
+            });
+
+
+
+
+
+
+
 
         });
     </script>
+
+    <div id="createOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); z-index: 25; flex-direction: column;">
+    <div style="padding: 10px; text-align: right;">
+        <button id="closeCreateOverlay" style="color: white; font-size: 24px; background: none; border: none; cursor: pointer;">&times;</button>
+    </div>
+    <iframe id="createIframe" src="about:blank" style="flex-grow: 1; border: none; width: 100%;"></iframe>
+</div>
+
 </body>
 </html>
