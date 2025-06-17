@@ -51,18 +51,29 @@
             text-overflow: ellipsis;
         }
 
-        /* --- Main App Styles --- */
+        /* --- Main App Styles (Flexbox Layout) --- */
         #appContainer {
             width: 100vw;
             height: 100vh;
-            position: relative;
             overflow: hidden;
             background-color: #000;
             display: none; /* Initially hidden */
+            flex-direction: column;
+        }
+        #swipeContainer {
+            flex-grow: 1; /* Takes up available space */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-snap-type: y mandatory;
+            position: relative; /* For positioning children overlays */
         }
         .swipe-item {
             width: 100%;
-            height: 100vh;
+            height: 100%; /* Changed from 100vh to fill the container */
             flex-shrink: 0;
             background-color: #111;
             overflow: hidden;
@@ -72,16 +83,7 @@
         #swipeContainer::-webkit-scrollbar {
             display: none;
         }
-        #swipeContainer {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            scroll-snap-type: y mandatory;
-        }
+
         .loader {
             border: 6px solid #444;
             border-top: 6px solid #fff;
@@ -115,7 +117,7 @@
             width: 100%;
             height: 100%;
             z-index: 10;
-            pointer-events: none;
+            pointer-events: auto; /* Enable touch capture */
         }
         #uiOverlay {
             position: absolute;
@@ -123,17 +125,16 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none; /* Pass clicks through */
             z-index: 20;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             color: white;
             box-sizing: border-box;
-            padding-bottom: 50px; /* Added space for the bottom nav bar */
         }
         #uiOverlay .actions-sidebar {
-            pointer-events: auto;
+            pointer-events: auto; /* Re-enable pointer events for buttons */
         }
         #uiOverlay .content-info {
             pointer-events: none;
@@ -141,7 +142,7 @@
         .actions-sidebar {
             position: absolute;
             right: 8px;
-            bottom: 80px; /* This is now relative to the new padded bottom of uiOverlay */
+            bottom: 20px; /* Adjusted position */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -188,11 +189,9 @@
             line-height: 1.3;
         }
 
-        /* --- Bottom Nav Bar --- */
+        /* --- Bottom Nav Bar (now part of flex layout) --- */
         #bottom-nav-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
+            flex-shrink: 0; /* Prevent from shrinking */
             width: 100%;
             background-color: #0F0F0F;
             border-top: 1px solid rgba(50, 50, 50, 0.8);
@@ -200,7 +199,6 @@
             justify-content: space-around;
             align-items: center;
             padding: 5px 0;
-            z-index: 30;
             box-sizing: border-box;
         }
         .nav-button {
@@ -221,7 +219,7 @@
             width: 24px;
             height: 24px;
             margin-bottom: 3px;
-            font-size: 24px; /* For character icons */
+            font-size: 24px;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -234,7 +232,6 @@
         .nav-button.active {
             color: #FFFFFF;
         }
-
     </style>
 </head>
 <body class="bg-black text-white">
@@ -266,14 +263,14 @@
                 <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>C</span></div><span class="quick-link-label">CNN</span></div>
             </div>
 
-            <!-- Games Button - This is the trigger to start the app -->
+            <!-- Games Button -->
             <div class="w-full flex justify-center mb-6">
                 <a href="#" id="startGameTrigger" class="block">
                     <img src="games_button.png" alt="Play Games" class="w-auto hover:opacity-90 transition-opacity">
                 </a>
             </div>
 
-            <!-- Discover/Following Tabs -->
+             <!-- Discover/Following Tabs -->
             <div class="w-full flex justify-center bg-gray-800 rounded-full p-1 mb-6">
                 <button class="flex-1 py-2 text-center text-sm font-medium rounded-full bg-blue-600 text-white shadow-md">Discover</button>
                 <button class="flex-1 py-2 text-center text-sm font-medium rounded-full text-gray-400">Following</button>
@@ -301,26 +298,27 @@
         </div>
     </div>
 
-    <!-- Main Swipeable App Content (Initially hidden) -->
+    <!-- Main Swipeable App Content -->
     <div id="appContainer">
-        <div id="swipeContainer"></div>
-        <div id="swipeCaptureLayer"></div>
-        <div id="uiOverlay">
-            <div class="actions-sidebar">
-                <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
-                <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
-                <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
-                <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
-                <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
-                <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
-                <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
-            </div>
-            <div class="content-info">
-                <div class="channel-name">@ChannelName</div>
-                <div class="description">This is a cool video or game description... #hashtag</div>
+        <div id="swipeContainer">
+            <!-- Swipeable items will be dynamically inserted here -->
+            <div id="swipeCaptureLayer"></div>
+            <div id="uiOverlay">
+                <div class="actions-sidebar">
+                    <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
+                    <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
+                    <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
+                    <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
+                    <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
+                    <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
+                    <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
+                </div>
+                <div class="content-info">
+                    <div class="channel-name">@ChannelName</div>
+                    <div class="description">This is a cool video or game description... #hashtag</div>
+                </div>
             </div>
         </div>
-        <!-- Bottom Navigation Bar -->
         <div id="bottom-nav-bar">
             <button id="homeButton" class="nav-button" aria-label="Home"><span class="icon">⌂</span><span>Home</span></button>
             <button class="nav-button active" aria-label="Games">
@@ -367,7 +365,7 @@
         // --- State ---
         let isYouTubeApiReady = false;
         let currentItemIndex = 0;
-        let contentInitialized = false; // Flag to check if content is loaded
+        let contentInitialized = false;
         const youtubePlayers = {};
         const preloadedIframes = {};
         const PRELOAD_AHEAD = 1;
@@ -376,15 +374,20 @@
         const startScreen = document.getElementById('startScreen');
         const appContainer = document.getElementById('appContainer');
         const swipeContainer = document.getElementById('swipeContainer');
-        const uiOverlay = document.getElementById('uiOverlay');
-        const uiActionsSidebar = uiOverlay.querySelector('.actions-sidebar');
-        const uiChannelName = uiOverlay.querySelector('.channel-name');
-        const uiDescription = uiOverlay.querySelector('.description');
+        const uiChannelName = document.querySelector('.content-info .channel-name');
+        const uiDescription = document.querySelector('.content-info .description');
         const fullscreenButton = document.getElementById('fullscreenButton');
         const profileFullscreenButton = document.getElementById('profileFullscreenButton');
         const startGameTrigger = document.getElementById('startGameTrigger');
         const googleLogo = document.getElementById('googleLogo');
         const homeButton = document.getElementById('homeButton');
+        const swipeCaptureLayer = document.getElementById('swipeCaptureLayer');
+
+        // --- Swipe Control State ---
+        let touchStartY = 0;
+        let isSwiping = false;
+        let touchStartScrollTop = 0;
+        const MIN_SWIPE_DISTANCE = 50;
 
 
         // --- App Initialization and Control ---
@@ -398,10 +401,10 @@
 
         function startApp() {
             startScreen.style.display = 'none';
-            appContainer.style.display = 'block';
+            appContainer.style.display = 'flex'; // Use flex to enable layout
             requestFullScreen();
 
-            if (contentInitialized) return; // Don't re-initialize
+            if (contentInitialized) return;
 
             if (isYouTubeApiReady) {
                 initializeVisibleContent();
@@ -448,9 +451,7 @@
             }
         }
 
-        function onPlayerStateChange(event) {
-            // Future logic for state changes
-        }
+        function onPlayerStateChange(event) {}
 
         // --- Content Loading and Management ---
         function createItemElement(itemData, index) {
@@ -462,7 +463,7 @@
             const loader = document.createElement('div');
             loader.className = 'loader';
             itemDiv.appendChild(loader);
-            swipeContainer.appendChild(itemDiv);
+            swipeContainer.insertBefore(itemDiv, swipeCaptureLayer); // Insert before capture layer
             return itemDiv;
         }
 
@@ -502,7 +503,7 @@
             if (contentInitialized) return;
             contentInitialized = true;
             contentItems.forEach((item, index) => createItemElement(item, index));
-            swipeContainer.scrollTop = currentItemIndex * window.innerHeight;
+            swipeContainer.scrollTop = currentItemIndex * swipeContainer.offsetHeight;
             updatePreloadedContent(currentItemIndex);
             updateDisplayedItemInfo(currentItemIndex);
         }
@@ -517,12 +518,12 @@
 
         function scrollToItem(index) {
             const newValidIndex = Math.max(0, Math.min(index, contentItems.length - 1));
-            swipeContainer.scrollTo({ top: newValidIndex * window.innerHeight, behavior: 'smooth' });
+            swipeContainer.scrollTo({ top: newValidIndex * swipeContainer.offsetHeight, behavior: 'smooth' });
         }
 
         // --- Scroll and Navigation Logic ---
         function handleScrollEnd() {
-            const newIndex = Math.round(swipeContainer.scrollTop / window.innerHeight);
+            const newIndex = Math.round(swipeContainer.scrollTop / swipeContainer.offsetHeight);
             if (newIndex !== currentItemIndex && newIndex >= 0 && newIndex < contentItems.length) {
                 const previousItemData = contentItems[currentItemIndex];
                 if (previousItemData?.type === 'video' && youtubePlayers[previousItemData.id]) {
@@ -544,47 +545,57 @@
             scrollEndTimeout = setTimeout(handleScrollEnd, 150);
         });
 
+        // --- Touch Swipe Listeners ---
+        swipeCaptureLayer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isSwiping = true;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = swipeContainer.scrollTop;
+                swipeContainer.style.scrollBehavior = 'auto'; // Disable smooth scroll during drag
+            }
+        }, { passive: true });
+
+        swipeCaptureLayer.addEventListener('touchmove', (e) => {
+            if (!isSwiping || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchCurrentY - touchStartY;
+            swipeContainer.scrollTop = touchStartScrollTop - deltaY;
+        }, { passive: false });
+
+        swipeCaptureLayer.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            swipeContainer.style.scrollBehavior = 'smooth'; // Re-enable smooth scroll for snap
+            const swipeDistance = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
+                scrollToItem(currentItemIndex + (swipeDistance < 0 ? 1 : -1));
+            } else {
+                scrollToItem(currentItemIndex);
+            }
+        });
+
+
         // --- Event Listeners Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-
             // --- App Start Triggers ---
-            if (startGameTrigger) {
-                startGameTrigger.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    startApp();
-                });
-            }
-            if (googleLogo) {
-                 googleLogo.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    startApp();
-                });
-            }
+            startGameTrigger?.addEventListener('click', (e) => { e.preventDefault(); startApp(); });
+            googleLogo?.addEventListener('click', (e) => { e.preventDefault(); startApp(); });
 
             // --- Home button listener ---
-            if (homeButton) {
-                homeButton.addEventListener('click', () => {
-                    const currentItemData = contentItems[currentItemIndex];
-                    if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
-                        youtubePlayers[currentItemData.id].pauseVideo();
-                    }
-                    appContainer.style.display = 'none';
-                    startScreen.style.display = 'flex';
-                    // Note: No longer exiting full-screen here
-                });
-            }
+            homeButton?.addEventListener('click', () => {
+                const currentItemData = contentItems[currentItemIndex];
+                if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
+                    youtubePlayers[currentItemData.id].pauseVideo();
+                }
+                appContainer.style.display = 'none';
+                startScreen.style.display = 'flex';
+            });
 
             // --- UI button listeners ---
             fullscreenButton?.addEventListener('click', requestFullScreen);
             profileFullscreenButton?.addEventListener('click', requestFullScreen);
-            uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
-                if (button.id !== 'fullscreenButton' && button.id !== 'profileFullscreenButton') {
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        console.log(`UI Button clicked: ${button.querySelector('span')?.textContent || 'icon'}`);
-                    });
-                }
-            });
         });
     </script>
 </body>
