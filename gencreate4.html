@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Creator Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #E0E0E0;
+        }
+
+        .material-input:focus-within label, 
+        .material-input .has-content ~ label {
+            transform: translateY(-1.75rem) scale(0.75);
+            color: #8B5CF6; /* Violet-500 */
+        }
+
+        .control-panel::-webkit-scrollbar { 
+            width: 6px;
+        }
+
+        .control-panel::-webkit-scrollbar-track {
+            background: #1f1f1f;
+        }
+
+        .control-panel::-webkit-scrollbar-thumb {
+            background-color: #4a4a4a;
+            border-radius: 3px;
+        }
+        
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+        
+        .option-btn.active {
+            background-color: #8B5CF6; /* Violet-500 */
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+
+        #generate-btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        #generate-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .iframe-container {
+            background: #1f1f1f;
+            border: 1px solid #333;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Left Control Panel -->
+    <aside class="w-full lg:w-1/3 xl:w-1/4 bg-[#181818] p-6 lg:p-8 flex flex-col h-screen">
+        <div class="flex items-center mb-8">
+            <svg class="w-8 h-8 text-violet-400 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
+            </svg>
+            <h1 class="text-2xl font-bold text-white tracking-tight">GameGen AI</h1>
+        </div>
+        
+        <div class="control-panel flex-grow overflow-y-auto -mr-4 pr-4">
+            <!-- Game Description -->
+            <div class="relative material-input mb-8">
+                <textarea id="game-description" class="has-content bg-[#2a2a2a] w-full p-4 rounded-lg border border-transparent focus:border-violet-500 focus:ring-0 focus:outline-none transition duration-200" rows="4">2048 is a captivating and deceptively simple puzzle game played on a 4x4 grid. The objective is to slide numbered tiles to combine them and create a tile with the value of 2048. This document provides a comprehensive breakdown of the game's mechanics, rules, and user interface, sufficient for a developer to create an exact replica of the original game.
+
+1. Game Objective
+The primary goal for the player is to create a single tile with the value of 2048. Achieving this constitutes a win, though the game can be continued to achieve a higher score. The ultimate lose condition is a grid with no available moves.
+
+2. The Game Board
+The game is played on a simple 4x4 grid, providing 16 square cells where the numbered tiles can reside.
+
+Initial State:
+
+The game begins with two tiles randomly placed on the grid.
+These initial tiles will have a value of either 2 or 4.
+3. Gameplay Mechanics: The Slide
+The core gameplay revolves around sliding all the tiles on the board in one of four cardinal directions: Up, Down, Left, or Right. This is typically controlled by the arrow keys on a keyboard or by swiping gestures on a touchscreen.
+
+When the player chooses a direction:
+
+All tiles on the board with a space to move will slide as far as possible in the chosen direction until they either hit the edge of the board or another tile.
+The movement of all tiles is simultaneous.
+4. Tile Merging: The Power of Two
+The central mechanic of 2048 is the merging of tiles.
+
+Rules of Merging:
+
+When two tiles with the same number collide during a slide, they merge into a single new tile.
+The new tile's value is the sum of the two merged tiles. For example, two '8' tiles will merge into a single '16' tile.
+The new, merged tile is placed in the cell where the collision occurred.
+A newly merged tile will not merge with another tile in the same move. For instance, if a row contains [4, 4, 8], and the player slides to the left, the result will be [8, 8, 0] (where 0 represents an empty cell), not [16, 0, 0]. The first two '4's merge into an '8', which then cannot merge with the existing '8' in the same turn.
+If three or four identical tiles are in a row or column and a move causes them to collapse, the merge will happen with the pair of tiles at the furthest point of the slide. For example, with a row of [2, 2, 2, 2] and a left slide, the result will be [4, 4, 0, 0].
+5. New Tile Generation: Keeping the Game Going
+After every successful move (i.e., a move that results in at least one tile changing its position or merging), a new tile is randomly generated on the board.
+
+New Tile Specifications:
+
+The new tile appears in a randomly selected empty cell on the grid.
+The value of the new tile has a 90% chance of being a 2 and a 10% chance of being a 4.
+6. Scoring: A Measure of Success
+The player's score is a running total of the values of the new tiles created through merging.
+
+Score Calculation:
+
+The score starts at 0.
+Whenever two tiles merge, the value of the newly created tile is added to the total score. For example, merging two '16' tiles to create a '32' tile adds 32 points to the player's score.
+7. Winning and Losing
+The game has clear conditions for both victory and defeat.
+
+Winning the Game:
+
+The game is won when a tile with the value of 2048 is created on the board.
+Upon reaching 2048, a "You Win!" message is typically displayed, but the player is often given the option to continue playing to achieve a higher score by creating even larger tiles (4096, 8192, etc.).
+Losing the Game:
+
+The game is lost when the grid is completely filled with tiles, and there are no legal moves remaining. A legal move is one where at least one tile can move to an empty space or merge with an adjacent tile.
+This means no empty cells are available, and no adjacent tiles (horizontally or vertically) have the same value.
+8. User Interface Essentials
+A functional replica of 2048 requires a minimal but clear user interface:
+
+Game Grid: A 4x4 grid visually representing the game board.
+Tiles: Each tile should display its numerical value and have a distinct color corresponding to its value to provide a quick visual reference for the player.
+Score Display: A clearly visible area to show the current score.
+New Game Button: To allow the player to restart the game at any time.
+Win/Loss Indication: A message or screen to inform the player when they have won or lost the game.
+</textarea>
+                <label for="game-description" class="absolute top-4 left-4 text-gray-400 pointer-events-none transition-all duration-200">Describe your game...</label>
+            </div>
+
+            <!-- Selections -->
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Genre</h2>
+                    <div class="flex flex-wrap gap-2" id="genre-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Platformer</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">RPG</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm" active>Puzzle</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Shooter</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Theme</h2>
+                    <div class="flex flex-wrap gap-2" id="theme-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Sci-Fi</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm" active>Fantasy</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Horror</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Adventure</button>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Art Style</h2>
+                    <div class="flex flex-wrap gap-2" id="art-style-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Pixel Art</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Vector</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Low Poly</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Cartoon</button>
+                    </div>
+                </div>
+                 <div>
+                    <h2 class="text-lg font-semibold mb-3 text-gray-300">Color Scheme</h2>
+                    <div class="flex flex-wrap gap-2" id="color-scheme-options">
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Vibrant</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Pastel</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm active">Neon</button>
+                        <button class="option-btn bg-[#2a2a2a] text-gray-300 py-2 px-4 rounded-full text-sm">Monochrome</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8">
+            <button id="generate-btn" class="w-full bg-violet-600 text-white font-bold py-4 px-4 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Generate Game
+            </button>
+        </div>
+    </aside>
+
+    <!-- Right Iframe Content -->
+    <main class="w-full lg:w-2/3 xl:w-3/4 flex-grow p-4 lg:p-6">
+        <div class="iframe-container w-full h-full rounded-xl overflow-hidden shadow-2xl">
+            <iframe id="game-preview" src="game2048.html" class="w-full h-full border-0"></iframe>
+        </div>
+    </main>
+
+    <script>
+        // Script for handling text area label animation
+        const textarea = document.getElementById('game-description');
+        textarea.addEventListener('input', () => {
+            if (textarea.value) {
+                textarea.classList.add('has-content');
+            } else {
+                textarea.classList.remove('has-content');
+            }
+        });
+
+        // Script for handling active state on option buttons
+        const optionGroups = ['genre-options', 'theme-options', 'art-style-options', 'color-scheme-options'];
+        optionGroups.forEach(groupId => {
+            const container = document.getElementById(groupId);
+            container.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    // Remove active class from siblings
+                    Array.from(container.children).forEach(child => child.classList.remove('active'));
+                    // Add active class to the clicked button
+                    e.target.classList.add('active');
+                }
+            });
+        });
+
+        // Script for the generate button (reloads the iframe for now)
+        document.getElementById('generate-btn').addEventListener('click', () => {
+            const iframe = document.getElementById('game-preview');
+            // Add a little animation effect on reload
+            iframe.style.animation = 'none';
+            setTimeout(() => {
+                iframe.src += ''; // This reloads the iframe
+                iframe.style.animation = 'fadeIn 1s ease-in-out';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
