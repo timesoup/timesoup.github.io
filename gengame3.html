@@ -1,0 +1,306 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Square Eating Frenzy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            touch-action: none; /* Disable panning and zooming on touch devices */
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            cursor: none; /* Hide the cursor over the canvas */
+        }
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.16 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.absolute{position:absolute}.inset-0{inset:0px}.m-0{margin:0px}.mb-2{margin-bottom:0.5rem}.mb-4{margin-bottom:1rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mt-8{margin-top:2rem}.flex{display:flex}.hidden{display:none}.h-screen{height:100vh}.w-full{width:100%}.max-w-2xl{max-width:42rem}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.rounded-lg{border-radius:0.5rem}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0 / var(--tw-bg-opacity, 1))}.bg-cyan-500{--tw-bg-opacity:1;background-color:rgb(6 182 212 / var(--tw-bg-opacity, 1))}.bg-opacity-70{--tw-bg-opacity:0.7}.p-4{padding:1rem}.px-8{padding-left:2rem;padding-right:2rem}.py-4{padding-top:1rem;padding-bottom:1rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-5xl{font-size:3rem;line-height:1}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.font-bold{font-weight:700}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-gray-400{--tw-text-opacity:1;color:rgb(156 163 175 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-cyan-600:hover{--tw-bg-opacity:1;background-color:rgb(8 145 178 / var(--tw-bg-opacity, 1))}@media (min-width: 768px){.md\:text-4xl{font-size:2.25rem;line-height:2.5rem}.md\:text-xl{font-size:1.25rem;line-height:1.75rem}}</style></head>
+<body class="flex flex-col items-center justify-center h-screen m-0 p-4" data-llm4sre-ubi-toggler-called_36.6="true" data-llm4sre-ubi-main-called_36.6="true">
+
+    <div id="ui-container" class="w-full max-w-2xl text-center mb-4">
+        <h1 class="text-3xl md:text-4xl font-bold mb-2 text-shadow text-cyan-400">Square Eating Frenzy</h1>
+        <div class="flex justify-between items-center text-lg md:text-xl">
+             <p class="text-shadow">Score: <span id="score">0</span></p>
+             <p class="text-shadow">High Score: <span id="highScore">4</span></p>
+        </div>
+        <p class="text-sm mt-2 text-gray-400">Move your mouse or finger to control the square!</p>
+    </div>
+
+    <canvas id="gameCanvas" width="681" height="681"></canvas>
+
+    <div id="gameOverScreen" class="absolute inset-0 bg-black bg-opacity-70 flex-col justify-center items-center text-center p-4 flex">
+        <h2 class="text-5xl font-bold text-red-500 text-shadow">Game Over</h2>
+        <p class="text-2xl mt-4 text-shadow">Your Score: <span id="finalScore">Resized!</span></p>
+        <button id="restartButton" class="mt-8 px-8 py-4 bg-cyan-500 text-white font-bold rounded-lg hover:bg-cyan-600 transition-colors text-shadow text-xl">
+            Restart
+        </button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('highScore');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalScoreEl = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+        
+        let player, food, enemies, score, highScore, gameOver;
+        let mouse = { x: null, y: null };
+
+        const PLAYER_START_SIZE = 20;
+        const FOOD_SIZE = 15;
+        const ENEMY_START_SIZE = 25;
+        const ENEMY_SPEED = 2;
+        const NUM_ENEMIES = 5;
+
+        // --- Game Setup and Control ---
+
+        function setCanvasSize() {
+            const uiHeight = document.getElementById('ui-container').offsetHeight;
+            const padding = 60; // Increased padding for better layout
+            const availableHeight = window.innerHeight - uiHeight - padding;
+            const availableWidth = window.innerWidth * 0.95;
+
+            const size = Math.min(availableWidth, availableHeight, 700);
+            canvas.width = size;
+            canvas.height = size;
+        }
+
+        function init() {
+            // Player setup
+            player = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                size: PLAYER_START_SIZE,
+                speed: 5, 
+                color: '#00ffff', // Cyan
+                angle: 0, // Initial angle
+                rotationSpeed: 0.05 // How fast it spins
+            };
+
+            // Set initial mouse/touch target to player's start position
+            mouse.x = player.x;
+            mouse.y = player.y;
+
+            // Score setup
+            score = 0;
+            highScore = localStorage.getItem('squareFrenzyHighScore') || 0;
+            scoreEl.textContent = score;
+            highScoreEl.textContent = highScore;
+
+            // Game state
+            gameOver = false;
+            gameOverScreen.classList.add('hidden');
+            gameOverScreen.classList.remove('flex');
+
+            // Generate game elements
+            spawnFood();
+            enemies = [];
+            for (let i = 0; i < NUM_ENEMIES; i++) {
+                spawnEnemy();
+            }
+            
+            // Start the game loop
+            requestAnimationFrame(gameLoop);
+        }
+
+        function spawnFood() {
+            food = {
+                x: Math.random() * (canvas.width - FOOD_SIZE),
+                y: Math.random() * (canvas.height - FOOD_SIZE),
+                size: FOOD_SIZE,
+                color: '#00ff00', // Green
+                angle: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.1 // Random spin speed and direction
+            };
+        }
+
+        function spawnEnemy() {
+            const size = Math.random() * 20 + ENEMY_START_SIZE;
+            let x, y;
+            // Spawn enemies off-screen
+            if (Math.random() < 0.5) {
+                x = Math.random() < 0.5 ? 0 - size : canvas.width + size;
+                y = Math.random() * canvas.height;
+            } else {
+                x = Math.random() * canvas.width;
+                y = Math.random() < 0.5 ? 0 - size : canvas.height + size;
+            }
+            
+            const angleToCenter = Math.atan2((canvas.height / 2) - y, (canvas.width / 2) - x);
+
+            enemies.push({
+                x,
+                y,
+                size,
+                color: '#ff0000', // Red
+                dx: Math.cos(angleToCenter) * ENEMY_SPEED,
+                dy: Math.sin(angleToCenter) * ENEMY_SPEED,
+                angle: 0,
+                rotationSpeed: (Math.random() - 0.5) * 0.1 // Random spin speed and direction
+            });
+        }
+
+
+        // --- Game Loop and Drawing ---
+
+        function gameLoop() {
+            if (gameOver) return;
+
+            update();
+            draw();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update() {
+            // Update player angle
+            player.angle += player.rotationSpeed;
+            
+            // Player movement towards the mouse/touch position
+            const dx = mouse.x - (player.x + player.size / 2); // Target center of player
+            const dy = mouse.y - (player.y + player.size / 2);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > player.speed) { // Move only if not at the destination
+                player.x += (dx / distance) * player.speed;
+                player.y += (dy / distance) * player.speed;
+            } else {
+                player.x = mouse.x - player.size / 2;
+                player.y = mouse.y - player.size / 2;
+            }
+
+
+            // Keep player within canvas bounds
+            player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+
+            // Enemy movement and collision
+            enemies.forEach((enemy, index) => {
+                enemy.x += enemy.dx;
+                enemy.y += enemy.dy;
+                enemy.angle += enemy.rotationSpeed; // Update enemy angle
+
+                // Reset enemy if it goes too far off-screen
+                if (enemy.x < -enemy.size * 2 || enemy.x > canvas.width + enemy.size * 2 ||
+                    enemy.y < -enemy.size * 2 || enemy.y > canvas.height + enemy.size * 2) {
+                    enemies.splice(index, 1);
+                    spawnEnemy();
+                }
+
+                if (checkCollision(player, enemy)) {
+                    endGame();
+                }
+            });
+
+            // Food collision
+            food.angle += food.rotationSpeed; // Update food angle
+            if (checkCollision(player, food)) {
+                score++;
+                scoreEl.textContent = score;
+                player.size += 1; // Grow the player
+                player.speed *= 0.995;
+                spawnFood();
+                if(score > 0 && score % 5 === 0) {
+                   spawnEnemy();
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSquare(food);
+            enemies.forEach(drawSquare);
+            drawSquare(player);
+        }
+        
+        function drawSquare(square) {
+            ctx.save(); // Save the current canvas state
+            // Translate to the center of the square
+            ctx.translate(square.x + square.size / 2, square.y + square.size / 2); 
+            ctx.rotate(square.angle); // Rotate the canvas
+            
+            ctx.fillStyle = square.color;
+            ctx.shadowColor = square.color;
+            ctx.shadowBlur = 10;
+            
+            // Draw the square centered on the new origin
+            ctx.fillRect(-square.size / 2, -square.size / 2, square.size, square.size);
+            
+            ctx.restore(); // Restore the canvas to its original state
+            ctx.shadowBlur = 0; // Reset shadow blur
+        }
+
+        // --- Collision and Game State ---
+        
+        function checkCollision(rect1, rect2) {
+            // Simple AABB collision detection is sufficient here
+            return (
+                rect1.x < rect2.x + rect2.size &&
+                rect1.x + rect1.size > rect2.x &&
+                rect1.y < rect2.y + rect2.size &&
+                rect1.y + rect1.size > rect2.y
+            );
+        }
+
+        function endGame() {
+            gameOver = true;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('squareFrenzyHighScore', highScore);
+                highScoreEl.textContent = highScore;
+            }
+            finalScoreEl.textContent = score;
+            gameOverScreen.classList.remove('hidden');
+            gameOverScreen.classList.add('flex');
+        }
+
+
+        // --- Event Listeners ---
+        function updateMousePosition(event) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            
+            mouse.x = clientX - rect.left;
+            mouse.y = clientY - rect.top;
+        }
+
+        canvas.addEventListener('mousemove', updateMousePosition);
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            updateMousePosition(e);
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            updateMousePosition(e);
+        });
+
+        restartButton.addEventListener('click', () => {
+             setCanvasSize();
+             init();
+        });
+
+        window.addEventListener('resize', () => {
+            setCanvasSize();
+            endGame(); 
+            finalScoreEl.textContent = "Resized!";
+        });
+
+        // --- Initial Start ---
+        setCanvasSize();
+        init();
+    </script>
+
+
+<simple-floater class="llm-extension-marker" closed="" closeable="" uitheme="2"><div style="padding: 5px; height: 100%; box-sizing: border-box;"><div style="height: 100%;"><!----><workspace-select><div style="height: 100%;"><chat-component displaycontext="" show_inline_agent_icon="" hide_trash_button="" enableautocomplete="" enablecommands="" enablehelpoverlay=""><context-holder></context-holder></chat-component></div></workspace-select></div></div></simple-floater></body></html>
