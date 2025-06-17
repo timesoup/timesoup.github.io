@@ -341,7 +341,7 @@
         </div>
         <div id="bottom-nav-bar">
             <button id="homeButton" class="nav-button" aria-label="Home"><span class="icon">⌂</span><span>Home</span></button>
-            <button class="nav-button active" aria-label="Games">
+<button id="gamesButton" class="nav-button active" aria-label="Games">
                 <span class="icon">
                     <svg height="24" viewBox="0 0 24 24" width="24" focusable="false"><path d="M11.2,4.84,8.44,11.2H12.8l-.72,3.6,2.76-6.36H11.2Z M9.8,3.4,4,15.8h4.4v5.4l5.8-12.4H9.8Z"></path></svg>
                 </span>
@@ -615,6 +615,20 @@
             const createOverlay = document.getElementById('createOverlay');
             const closeCreateOverlay = document.getElementById('closeCreateOverlay');
             const createIframe = document.getElementById('createIframe');
+
+
+            // --- Hide Create Overlay when Games button is clicked ---
+            const gamesButton = document.getElementById('gamesButton');
+            gamesButton?.addEventListener('click', () => {
+                const createOverlay = document.getElementById('createOverlay');
+                const createIframe = document.getElementById('createIframe');
+                if (createOverlay) {
+                    createOverlay.style.display = 'none'; // Hide the overlay
+                }
+                if (createIframe) {
+                    createIframe.src = 'about:blank'; // Reset the iframe to save memory
+                }
+            });
 
 
             // --- App Start Triggers ---
