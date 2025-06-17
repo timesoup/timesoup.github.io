@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Swipeable Content App</title>
+    <!-- Tailwind CSS & Font Awesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- General Styles --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior-y: contain;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll */
+            background-color: #000;
+        }
+
+        /* --- Start Screen Styles (from chrome_start.html) --- */
+        #startScreen {
+            height: 100vh;
+            overflow-y: auto;
+        }
+        #startScreen::-webkit-scrollbar {
+            display: none;
+        }
+        #startScreen {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .icon-circle {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.5rem;
+        }
+        .quick-link-label {
+            font-size: 0.75rem;
+            color: #b0b0b0;
+            margin-top: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* --- Main App Styles (from index.html) --- */
+        #appContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background-color: #000;
+            display: none; /* Initially hidden */
+        }
+        .swipe-item {
+            width: 100%; 
+            height: 100vh; 
+            flex-shrink: 0; 
+            background-color: #111; 
+            overflow: hidden; 
+            position: relative; 
+            scroll-snap-align: start;
+        }
+        #swipeContainer::-webkit-scrollbar {
+            display: none;
+        }
+        #swipeContainer {
+            width: 100%;
+            height: 100%;
+            display: flex; 
+            flex-direction: column;
+            overflow-y: auto; 
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-snap-type: y mandatory; 
+        }
+        .loader {
+            border: 6px solid #444;
+            border-top: 6px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .iframe-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1; 
+        }
+        #swipeCaptureLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10; 
+            pointer-events: none;
+        }
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20; 
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: white;
+        }
+        #uiOverlay .actions-sidebar {
+            pointer-events: auto; 
+        }
+        #uiOverlay .content-info {
+            pointer-events: none; 
+        }
+        .actions-sidebar {
+            position: absolute;
+            right: 8px;
+            bottom: 80px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; 
+        }
+        .actions-sidebar .action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 5px; 
+        }
+        .actions-sidebar .action-button i {
+            font-size: 28px; 
+            margin-bottom: 4px;
+        }
+         .actions-sidebar .profile-icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px; 
+            border: 2px solid white;
+        }
+        .actions-sidebar .profile-icon-container i {
+             font-size: 20px;
+             color: #fff;
+        }
+        .content-info {
+            padding: 12px;
+            background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+        }
+        .content-info .channel-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .content-info .description {
+            font-size: 14px;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+
+    <!-- Start Screen Content -->
+    <div id="startScreen" class="text-white flex flex-col items-center">
+        <div class="flex-grow w-full max-w-lg px-4 flex flex-col items-center">
+            <!-- Google Logo -->
+            <div class="my-8">
+                <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png"
+                     onerror="this.src='https://placehold.co/272x92/000000/ffffff?text=Google';"
+                     alt="Google Logo" class="w-60 h-auto">
+            </div>
+
+            <!-- Search Bar -->
+            <div class="w-full relative">
+                <input type="text" placeholder="Search or type URL"
+                    class="w-full py-3 pl-12 pr-4 bg-gray-800 text-white rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <i class="fas fa-microphone absolute right-4 top-1/2 -translate-y-1/2 text-blue-400"></i>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="w-full flex justify-around items-start my-8 px-2">
+                <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>G</span></div><span class="quick-link-label">Google</span></div>
+                <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>Y</span></div><span class="quick-link-label">YouTube</span></div>
+                <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>N</span></div><span class="quick-link-label">Netflix</span></div>
+                <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>A</span></div><span class="quick-link-label">Amazon</span></div>
+                <div class="flex flex-col items-center mx-2"><div class="icon-circle"><span>C</span></div><span class="quick-link-label">CNN</span></div>
+            </div>
+
+            <!-- Games Button - This is the trigger to start the app -->
+            <div class="w-full flex justify-center mb-6">
+                <a href="#" id="startGameTrigger" class="block">
+                    <img src="https://storage.googleapis.com/assets.badi.app/games_button.png" alt="Play Games" class="w-auto hover:opacity-90 transition-opacity">
+                </a>
+            </div>
+
+            <!-- Discover/Following Tabs -->
+            <div class="w-full flex justify-center bg-gray-800 rounded-full p-1 mb-6">
+                <button class="flex-1 py-2 text-center text-sm font-medium rounded-full bg-blue-600 text-white shadow-md">Discover</button>
+                <button class="flex-1 py-2 text-center text-sm font-medium rounded-full text-gray-400">Following</button>
+            </div>
+
+            <!-- Article Cards -->
+            <div class="w-full space-y-4">
+                <div class="bg-gray-800 rounded-xl shadow-lg p-4 flex items-center justify-between">
+                    <div class="flex flex-col flex-grow pr-4">
+                        <h3 class="text-lg font-medium text-gray-100 mb-2 leading-tight">Fed official revamps interest-rate cut forecast for rest of this year</h3>
+                        <div class="flex items-center text-gray-400 text-sm"><span class="font-bold text-blue-400 mr-1">Ts</span> TheStreet • 14h</div>
+                    </div>
+                    <div class="flex-shrink-0"><img src="https://placehold.co/80x80/334155/ffffff?text=News" alt="Article Thumbnail" class="w-20 h-20 rounded-lg object-cover"></div>
+                    <div class="flex flex-col items-center text-gray-400 ml-4 space-y-2"><i class="fas fa-share-alt text-xl"></i><i class="fas fa-ellipsis-v text-xl"></i></div>
+                </div>
+                <div class="bg-gray-800 rounded-xl shadow-lg p-4 flex items-center justify-between">
+                    <div class="flex flex-col flex-grow pr-4">
+                        <h3 class="text-lg font-medium text-gray-100 mb-2 leading-tight">New breakthrough in AI language models promises more natural conversations</h3>
+                        <div class="flex items-center text-gray-400 text-sm"><span class="font-bold text-yellow-400 mr-1">Td</span> TechDaily • 5h</div>
+                    </div>
+                    <div class="flex-shrink-0"><img src="https://placehold.co/80x80/4a5568/ffffff?text=AI" alt="AI language model concept" class="w-20 h-20 rounded-lg object-cover"></div>
+                    <div class="flex flex-col items-center text-gray-400 ml-4 space-y-2"><i class="fas fa-share-alt text-xl"></i><i class="fas fa-ellipsis-v text-xl"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Swipeable App Content (Initially hidden) -->
+    <div id="appContainer">
+        <div id="swipeContainer"></div>
+        <div id="swipeCaptureLayer"></div> 
+        <div id="uiOverlay">
+            <div class="actions-sidebar">
+                <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
+                <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
+                <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
+                <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
+                <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
+                <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
+                <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
+            </div>
+            <div class="content-info">
+                <div class="channel-name">@ChannelName</div>
+                <div class="description">This is a cool video or game description... #hashtag</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // --- Configuration ---
+        const contentItems = [
+            { type: 'game', url: 'https://gamesnacks.com/games/6e0ej8ct9hdj8#sc=1746578696109227372-2828726', id: 'game0', title: 'Retro Racer', description: 'Test your racing  skills. #brainteaser' },
+            { type: 'game', url: 'https://dinosaurgame3d.com/', id: 'game01', title: 'Dino3D', description: 'Chrome Dino game, in 3D' },
+            { type: 'game', url: 'https://gamesnacks.com/games/5pj67mkaqugmo', id: 'game1', title: 'Fruit cube blast', description: 'Best match 3 game' },
+            { type: 'game', url: 'https://gamesnacks.com/games/0s1do8fmhrn9g#sc=1746578696103593132-2828726', id: 'game2', title: 'Family Feud', description: 'Guess their answer' },
+            { type: 'game', url: 'https://gamesnacks.com/games/7u583tvdi3f00', id: 'game3', title: 'Letter Links', description: 'Find the words hidden in the puzzle' },
+            { type: 'game', url: 'https://timesoup.github.io/game1.html', id: 'game4', title: 'Gen Game 1', description: 'Find the words hidden in the puzzle' },
+            { type: 'game', url: 'https://timesoup.github.io/game2.html', id: 'game5', title: 'Gen Game 2', description: 'Find the words hidden in the puzzle' },
+            { type: 'video', videoId: 'k6XZ-hLbs-c', id: 'video0', title: 'chang0000', description: 'How\'s it feel when my crush like me back? 😳 #chang0000 #chany #c4class' },
+            { type: 'video', videoId: 'WjHgQsXEAFA', id: 'video1', title: 'engineerusa44', description: '181/LikeComment Subscribe"#SEO-driven#adamrose #construction #engineering #NYC #NewYorkCity #NYCVlog' },            
+            { type: 'video', videoId: 'J2Zqn4dXuno', id: 'video2', title: 'LUCKY MAN 10M', description: 'Moment Before Cooked ☠️ #trollface #edit #shorts' }
+        ];
+
+        // --- State ---
+        let isYouTubeApiReady = false;
+        let currentItemIndex = 0;
+        const youtubePlayers = {};
+        const preloadedIframes = {}; 
+        const PRELOAD_AHEAD = 1;
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('appContainer');
+        const swipeContainer = document.getElementById('swipeContainer');
+        const uiOverlay = document.getElementById('uiOverlay');
+        const uiActionsSidebar = uiOverlay.querySelector('.actions-sidebar');
+        const uiChannelName = uiOverlay.querySelector('.channel-name');
+        const uiDescription = uiOverlay.querySelector('.description');
+        const fullscreenButton = document.getElementById('fullscreenButton');
+        const profileFullscreenButton = document.getElementById('profileFullscreenButton');
+
+        // --- Swipe Control State ---
+        let touchStartY = 0;
+        let touchStartScrollTop = 0;
+        let isAppNavigating = false;
+        const MIN_SWIPE_DISTANCE_FOR_NAVIGATION = 60;
+
+        // --- App Initialization and Control ---
+        function requestFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(console.warn);
+            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen().catch(console.warn);
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(console.warn);
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen().catch(console.warn);
+        }
+
+        // --- YouTube API Integration ---
+        window.onYouTubeIframeAPIReady = function() {
+            console.log("YouTube IFrame API Ready");
+            isYouTubeApiReady = true;
+            // IMPORTANT: We no longer initialize content automatically here.
+            // Initialization is now triggered by the user starting the app.
+        };
+
+        function createYoutubePlayer(item, itemDiv) {
+            const iframeId = `ytplayer-${item.id}`;
+            const playerDiv = document.createElement('div');
+            playerDiv.id = iframeId;
+            playerDiv.className = 'iframe-content';
+            itemDiv.appendChild(playerDiv);
+            preloadedIframes[contentItems.indexOf(item)] = playerDiv;
+            youtubePlayers[item.id] = new YT.Player(iframeId, {
+                height: '100%', width: '100%', videoId: item.videoId,
+                playerVars: { 'playsinline': 1, 'autoplay': 0, 'controls': 0, 'origin': window.location.origin, 'enablejsapi': 1, 'modestbranding': 1, 'showinfo': 0, 'rel': 0 },
+                events: { 'onReady': (event) => onPlayerReady(event, item), 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerReady(event, item) {
+            console.log(`Player ready for ${item.id}`);
+            const itemIndex = contentItems.findIndex(ci => ci.id === item.id);
+            const itemDiv = swipeContainer.querySelector(`.swipe-item[data-index='${itemIndex}']`);
+            if (itemDiv) itemDiv.querySelector('.loader')?.remove();
+            if (itemIndex === currentItemIndex) {
+                setTimeout(() => event.target?.playVideo(), 100);
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            // Future logic for state changes (e.g., auto-advancing on video end) can go here.
+        }
+
+        // --- Content Loading and Management ---
+        function createItemElement(itemData, index) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'swipe-item';
+            itemDiv.dataset.index = index;
+            itemDiv.dataset.id = itemData.id;
+            itemDiv.dataset.type = itemData.type;
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            itemDiv.appendChild(loader);
+            swipeContainer.appendChild(itemDiv);
+            return itemDiv;
+        }
+        
+        function loadItemContent(itemIndex) {
+            if (itemIndex < 0 || itemIndex >= contentItems.length || preloadedIframes[itemIndex]) return;
+            const itemData = contentItems[itemIndex];
+            const itemDiv = swipeContainer.querySelector(`.swipe-item[data-index='${itemIndex}']`);
+            if (!itemDiv) return;
+            
+            if (itemData.type === 'video') {
+                if (typeof YT !== 'undefined' && typeof YT.Player !== 'undefined') {
+                    createYoutubePlayer(itemData, itemDiv);
+                }
+            } else if (itemData.type === 'game') {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'iframe-content';
+                iframe.src = itemData.url;
+                iframe.setAttribute('allow', 'gamepad; autoplay; fullscreen;');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('scrolling', 'no');
+                iframe.onload = () => itemDiv.querySelector('.loader')?.remove();
+                iframe.onerror = () => itemDiv.querySelector('.loader').textContent = "Error.";
+                itemDiv.appendChild(iframe);
+                preloadedIframes[itemIndex] = iframe;
+            }
+        }
+        
+        function updateDisplayedItemInfo(index) {
+            if (index >= 0 && index < contentItems.length) {
+                const item = contentItems[index];
+                uiChannelName.textContent = `@${item.title.replace(/\s+/g, '').substring(0,20) || 'Channel'}`;
+                uiDescription.textContent = item.description.substring(0, 100) || 'No description available.';
+            }
+        }
+
+        function initializeVisibleContent() {
+            contentItems.forEach((item, index) => createItemElement(item, index));
+            swipeContainer.scrollTop = currentItemIndex * window.innerHeight;
+            updatePreloadedContent(currentItemIndex);
+            updateDisplayedItemInfo(currentItemIndex);
+        }
+
+        function updatePreloadedContent(newIndex) {
+            loadItemContent(newIndex);
+            for (let i = 1; i <= PRELOAD_AHEAD; i++) {
+                loadItemContent(newIndex + i);
+                loadItemContent(newIndex - i);
+            }
+        }
+
+        function scrollToItem(index) {
+            const newValidIndex = Math.max(0, Math.min(index, contentItems.length - 1));
+            swipeContainer.scrollTo({ top: newValidIndex * window.innerHeight, behavior: 'smooth' });
+        }
+
+        // --- Scroll and Navigation Logic ---
+        function handleScrollEnd() {
+            const newIndex = Math.round(swipeContainer.scrollTop / window.innerHeight);
+            if (newIndex !== currentItemIndex && newIndex >= 0 && newIndex < contentItems.length) {
+                const previousItemData = contentItems[currentItemIndex];
+                if (previousItemData?.type === 'video' && youtubePlayers[previousItemData.id]) {
+                    youtubePlayers[previousItemData.id].pauseVideo();
+                }
+                currentItemIndex = newIndex;
+                updatePreloadedContent(currentItemIndex);
+                updateDisplayedItemInfo(currentItemIndex);
+                const currentItemData = contentItems[currentItemIndex];
+                if (currentItemData.type === 'video' && youtubePlayers[currentItemData.id]) {
+                    setTimeout(() => youtubePlayers[currentItemData.id]?.playVideo(), 100);
+                }
+            }
+        }
+
+        // --- Touch Handling for App Navigation ---
+        appContainer.addEventListener('touchstart', (e) => {
+            if (uiActionsSidebar.contains(e.target) && e.touches.length === 1) {
+                isAppNavigating = true;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = swipeContainer.scrollTop;
+            } else {
+                isAppNavigating = false;
+            }
+        }, { passive: true });
+
+        appContainer.addEventListener('touchmove', (e) => {
+            if (!isAppNavigating) return;
+            e.preventDefault();
+            swipeContainer.scrollTop = touchStartScrollTop - (e.touches[0].clientY - touchStartY);
+        }, { passive: false });
+
+        appContainer.addEventListener('touchend', (e) => {
+            if (!isAppNavigating) return;
+            isAppNavigating = false; 
+            if (Math.abs(e.changedTouches[0].clientY - touchStartY) > MIN_SWIPE_DISTANCE_FOR_NAVIGATION) {
+                scrollToItem(currentItemIndex + (e.changedTouches[0].clientY < touchStartY ? 1 : -1));
+            } else {
+                scrollToItem(currentItemIndex);
+            }
+        });
+
+        let scrollEndTimeout;
+        swipeContainer.addEventListener('scroll', () => {
+            clearTimeout(scrollEndTimeout);
+            scrollEndTimeout = setTimeout(handleScrollEnd, 150); 
+        });
+
+        // --- Initialization on DOM Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const startScreen = document.getElementById('startScreen');
+            const startGameTrigger = document.getElementById('startGameTrigger');
+
+            // Set up listener for the "Play Games" button on the start screen
+            if (startGameTrigger) {
+                startGameTrigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    startScreen.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    requestFullScreen();
+
+                    // Check if YouTube API is ready, if not, wait for it.
+                    if (isYouTubeApiReady) {
+                        initializeVisibleContent();
+                    } else {
+                        console.log("Start clicked, waiting for YouTube API...");
+                        const apiWaitInterval = setInterval(() => {
+                            if (isYouTubeApiReady) {
+                                clearInterval(apiWaitInterval);
+                                console.log("YouTube API is now ready, initializing content.");
+                                initializeVisibleContent();
+                            }
+                        }, 100);
+                    }
+                });
+            }
+
+            // --- Set up UI button listeners for the main app ---
+            fullscreenButton?.addEventListener('click', requestFullScreen);
+            profileFullscreenButton?.addEventListener('click', requestFullScreen);
+            uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
+                if (button.id !== 'fullscreenButton' && button.id !== 'profileFullscreenButton') {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation(); 
+                        console.log(`UI Button clicked: ${button.querySelector('span')?.textContent || 'icon'}`);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
