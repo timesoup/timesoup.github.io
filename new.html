@@ -10,59 +10,77 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- General Styles --- */
-        body, html {
+        body {
             font-family: 'Inter', sans-serif;
             overscroll-behavior-y: contain;
             margin: 0;
             padding: 0;
-            height: 100%;
             overflow: hidden; /* Prevent body scroll */
             background-color: #000;
         }
 
-        /* --- Start Screen Styles --- */
+        /* --- Start Screen Styles (from chrome_start.html) --- */
         #startScreen {
             height: 100vh;
             overflow-y: auto;
         }
-        #startScreen::-webkit-scrollbar { display: none; }
-        #startScreen { -ms-overflow-style: none; scrollbar-width: none; }
-        .icon-circle { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: rgba(255, 255, 255, 0.1); color: white; font-size: 1.5rem; }
-        .quick-link-label { font-size: 0.75rem; color: #b0b0b0; margin-top: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #startScreen::-webkit-scrollbar {
+            display: none;
+        }
+        #startScreen {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .icon-circle {
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.5rem;
+        }
+        .quick-link-label {
+            font-size: 0.75rem;
+            color: #b0b0b0;
+            margin-top: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-        /* --- Main App Styles (Revised for Flexbox Layout) --- */
+        /* --- Main App Styles (from index.html) --- */
         #appContainer {
             width: 100vw;
             height: 100vh;
+            position: relative;
             overflow: hidden;
             background-color: #000;
-            display: none; /* Initially hidden, changed to 'flex' by JS */
-            flex-direction: column;
+            display: none; /* Initially hidden */
         }
-        #contentWrapper {
-            flex-grow: 1;
+        .swipe-item {
+            width: 100%;
+            height: 100vh;
+            flex-shrink: 0;
+            background-color: #111;
+            overflow: hidden;
             position: relative;
-            overflow: hidden; /* This will contain the scrollable area and overlay */
+            scroll-snap-align: start;
+        }
+        #swipeContainer::-webkit-scrollbar {
+            display: none;
         }
         #swipeContainer {
             width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
-            overflow-y: scroll; /* Use native scroll for smoothness */
+            overflow-y: auto;
             -ms-overflow-style: none;
             scrollbar-width: none;
             scroll-snap-type: y mandatory;
-        }
-        #swipeContainer::-webkit-scrollbar { display: none; }
-        .swipe-item {
-            width: 100%;
-            height: 100%; /* Use 100% to fill parent (#swipeContainer) */
-            flex-shrink: 0;
-            background-color: #111;
-            overflow: hidden;
-            position: relative;
-            scroll-snap-align: start;
         }
         .loader {
             border: 6px solid #444;
@@ -90,50 +108,91 @@
             left: 0;
             z-index: 1;
         }
-
-        /* --- UI Overlay --- */
+        #swipeCaptureLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
         #uiOverlay {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 20;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             color: white;
+            box-sizing: border-box;
+            padding-bottom: 50px; /* Added space for the bottom nav bar */
         }
-        #uiOverlay .actions-sidebar, #uiOverlay .content-info {
+        #uiOverlay .actions-sidebar {
             pointer-events: auto;
+        }
+        #uiOverlay .content-info {
+            pointer-events: none;
         }
         .actions-sidebar {
             position: absolute;
             right: 8px;
-            bottom: 80px;
+            bottom: 80px; /* This is now relative to the new padded bottom of uiOverlay */
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 20px;
         }
         .actions-sidebar .action-button {
-            display: flex; flex-direction: column; align-items: center;
-            cursor: pointer; font-size: 12px; padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 5px;
         }
-        .actions-sidebar .action-button i { font-size: 28px; margin-bottom: 4px; }
-        .actions-sidebar .profile-icon-container {
-            width: 40px; height: 40px; border-radius: 50%; background-color: #555;
-            display: flex; align-items: center; justify-content: center;
-            margin-top: 10px; border: 2px solid white;
+        .actions-sidebar .action-button i {
+            font-size: 28px;
+            margin-bottom: 4px;
         }
-        .actions-sidebar .profile-icon-container i { font-size: 20px; color: #fff; }
+         .actions-sidebar .profile-icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            border: 2px solid white;
+        }
+        .actions-sidebar .profile-icon-container i {
+             font-size: 20px;
+             color: #fff;
+        }
         .content-info {
             padding: 12px;
             background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0));
         }
-        .content-info .channel-name { font-weight: bold; font-size: 16px; }
-        .content-info .description { font-size: 14px; margin-top: 4px; line-height: 1.3; }
+        .content-info .channel-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .content-info .description {
+            font-size: 14px;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
 
-        /* --- Bottom Navigation Bar Styles (from games.html) --- */
+        /* --- Bottom Nav Bar --- */
         #bottom-nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
             background-color: #0F0F0F;
             border-top: 1px solid rgba(50, 50, 50, 0.8);
@@ -141,18 +200,41 @@
             justify-content: space-around;
             align-items: center;
             padding: 5px 0;
-            z-index: 100;
+            z-index: 30;
             box-sizing: border-box;
-            flex-shrink: 0; /* Prevent it from shrinking */
         }
         .nav-button {
-            background-color: transparent; border: none; color: #AAAAAA;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 10px; cursor: pointer; padding: 5px 8px; flex-grow: 1; text-align: center;
+            background-color: transparent;
+            border: none;
+            color: #AAAAAA;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 5px 8px;
+            flex-grow: 1;
+            text-align: center;
         }
-        .nav-button .icon { width: 24px; height: 24px; margin-bottom: 3px; }
-        .nav-button .icon svg { fill: currentColor; }
-        .nav-button.active { color: #FFFFFF; }
+        .nav-button .icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 3px;
+            font-size: 24px; /* For character icons */
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .nav-button .icon svg {
+            fill: currentColor;
+            width: 100%;
+            height: 100%;
+        }
+        .nav-button.active {
+            color: #FFFFFF;
+        }
+
     </style>
 </head>
 <body class="bg-black text-white">
@@ -219,35 +301,35 @@
         </div>
     </div>
 
-    <!-- Main Swipeable App Content (Revised structure) -->
+    <!-- Main Swipeable App Content (Initially hidden) -->
     <div id="appContainer">
-        <div id="contentWrapper">
-            <div id="swipeContainer"></div>
-            <div id="uiOverlay">
-                <div class="actions-sidebar">
-                    <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
-                    <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
-                    <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
-                    <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
-                    <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
-                    <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
-                    <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
-                </div>
-                <div class="content-info">
-                    <div class="channel-name">@ChannelName</div>
-                    <div class="description">This is a cool video or game description... #hashtag</div>
-                </div>
+        <div id="swipeContainer"></div>
+        <div id="swipeCaptureLayer"></div>
+        <div id="uiOverlay">
+            <div class="actions-sidebar">
+                <div id="fullscreenButton" class="action-button"><i class="fas fa-expand"></i><span>Full</span></div>
+                <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
+                <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
+                <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
+                <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
+                <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
+                <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
+            </div>
+            <div class="content-info">
+                <div class="channel-name">@ChannelName</div>
+                <div class="description">This is a cool video or game description... #hashtag</div>
             </div>
         </div>
+        <!-- Bottom Navigation Bar -->
         <div id="bottom-nav-bar">
-            <button id="homeButton" class="nav-button active" aria-label="Home"><span class="icon" style="font-size: 24px;">⌂</span><span>Home</span></button>
-            <button class="nav-button" aria-label="Games">
+            <button id="homeButton" class="nav-button" aria-label="Home"><span class="icon">⌂</span><span>Home</span></button>
+            <button class="nav-button active" aria-label="Games">
                 <span class="icon">
                     <svg height="24" viewBox="0 0 24 24" width="24" focusable="false"><path d="M11.2,4.84,8.44,11.2H12.8l-.72,3.6,2.76-6.36H11.2Z M9.8,3.4,4,15.8h4.4v5.4l5.8-12.4H9.8Z"></path></svg>
                 </span>
                 <span>Games</span>
             </button>
-             <a href="#" class="nav-button" aria-label="Create">
+            <a href="#" class="nav-button" aria-label="Create">
                 <span class="icon" style="font-size: 28px; border: 1.5px solid #AAAAAA; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; line-height: 28px;">+</span>
             </a>
             <button class="nav-button" aria-label="Subscriptions">
@@ -256,7 +338,7 @@
                 </span>
                 <span>Subscriptions</span>
             </button>
-            <button class="nav-button" aria-label="You"><span class="icon" style="font-size: 20px;">👤</span><span>You</span></button>
+            <button class="nav-button" aria-label="You"><span class="icon">👤</span><span>You</span></button>
         </div>
     </div>
 
@@ -270,36 +352,46 @@
             { type: 'game', url: 'https://gamesnacks.com/games/5pj67mkaqugmo', id: 'game1', title: 'Fruit cube blast', description: 'Best match 3 game' },
             { type: 'game', url: 'https://gamesnacks.com/games/0s1do8fmhrn9g#sc=1746578696103593132-2828726', id: 'game2', title: 'Family Feud', description: 'Guess their answer' },
             { type: 'game', url: 'https://gamesnacks.com/games/7u583tvdi3f00', id: 'game3', title: 'Letter Links', description: 'Find the words hidden in the puzzle' },
+
             { type: 'game', url: 'https://timesoup.github.io/game1.html', id: 'game4', title: 'Gen Game 1', description: 'Find the words hidden in the puzzle' },
             { type: 'game', url: 'https://timesoup.github.io/game2.html', id: 'game5', title: 'Gen Game 2', description: 'Find the words hidden in the puzzle' },
+
             { type: 'video', videoId: 'k6XZ-hLbs-c', id: 'video0', title: 'chang0000', description: 'How\'s it feel when my crush like me back? 😳 #chang0000 #chany #c4class' },
-            { type: 'video', videoId: 'WjHgQsXEAFA', id: 'video1', title: 'engineerusa44', description: '181/LikeComment Subscribe"#SEO-driven#adamrose #construction #engineering #NYC #NewYorkCity #NYCVlog' },            
+            { type: 'video', videoId: 'WjHgQsXEAFA', id: 'video1', title: 'engineerusa44', description: '181/LikeComment Subscribe"#SEO-driven#adamrose #construction #engineering #NYC #NewYorkCity #NYCVlog' },
             { type: 'video', videoId: 'J2Zqn4dXuno', id: 'video2', title: 'LUCKY MAN 10M', description: 'Moment Before Cooked ☠️ #trollface #edit #shorts' },
             { type: 'video', videoId: 'VB5EVwbqmeE', id: 'video3', title: 'Funny Moments', description: 'A collection of hilarious clips. #funny #comedy' },
-            { type: 'video', videoId: 'jKISt-_GeQk', id: 'video4', title: 'RedFrame2', description: '#Move' },            
-            { type: 'video', videoId: 'gWF6RiY251M', id: 'video5', title: 'JasminandJames', description: 'Magic trick REVEALED… 👀😱🤣 | Jasmin and James #Shorts' },            
-            { type: 'video', videoId: 'cn965afzoe8', id: 'video6', title: 'ZachKing', description: 'Who enjoyed seeing the solar eclipse' },   
-            { type: 'video', videoId: '9efannizT9E', id: 'video7', title: 'Bachiraa-Editz', description: 'The Best Parkour 🗿' }            
+            { type: 'video', videoId: 'jKISt-_GeQk', id: 'video4', title: 'RedFrame2', description: '#Move' },
+            { type: 'video', videoId: 'gWF6RiY251M', id: 'video5', title: 'JasminandJames', description: 'Magic trick REVEALED… 👀😱🤣 | Jasmin and James #Shorts' },
+            { type: 'video', videoId: 'cn965afzoe8', id: 'video6', title: 'ZachKing', description: 'Who enjoyed seeing the solar eclipse' },
+
+
+
+            { type: 'video', videoId: '9efannizT9E', id: 'video7', title: 'Bachiraa-Editz', description: 'The Best Parkour 🗿' }
+
         ];
 
-        // --- State (simplified) ---
+        // --- State ---
         let isYouTubeApiReady = false;
         let currentItemIndex = 0;
         const youtubePlayers = {};
-        const preloadedIframes = {}; 
+        const preloadedIframes = {};
         const PRELOAD_AHEAD = 1;
 
         // --- DOM Elements ---
-        const startScreen = document.getElementById('startScreen');
-        const startGameTrigger = document.getElementById('startGameTrigger');
         const appContainer = document.getElementById('appContainer');
         const swipeContainer = document.getElementById('swipeContainer');
         const uiOverlay = document.getElementById('uiOverlay');
+        const uiActionsSidebar = uiOverlay.querySelector('.actions-sidebar');
         const uiChannelName = uiOverlay.querySelector('.channel-name');
         const uiDescription = uiOverlay.querySelector('.description');
         const fullscreenButton = document.getElementById('fullscreenButton');
         const profileFullscreenButton = document.getElementById('profileFullscreenButton');
-        const homeButton = document.getElementById('homeButton');
+
+        // --- Swipe Control State ---
+        let touchStartY = 0;
+        let touchStartScrollTop = 0;
+        let isAppNavigating = false;
+        const MIN_SWIPE_DISTANCE_FOR_NAVIGATION = 60;
 
         // --- App Initialization and Control ---
         function requestFullScreen() {
@@ -314,6 +406,8 @@
         window.onYouTubeIframeAPIReady = function() {
             console.log("YouTube IFrame API Ready");
             isYouTubeApiReady = true;
+            // IMPORTANT: We no longer initialize content automatically here.
+            // Initialization is now triggered by the user starting the app.
         };
 
         function createYoutubePlayer(item, itemDiv) {
@@ -341,7 +435,7 @@
         }
 
         function onPlayerStateChange(event) {
-            // Future logic for state changes can go here.
+            // Future logic for state changes (e.g., auto-advancing on video end) can go here.
         }
 
         // --- Content Loading and Management ---
@@ -357,13 +451,13 @@
             swipeContainer.appendChild(itemDiv);
             return itemDiv;
         }
-        
+
         function loadItemContent(itemIndex) {
             if (itemIndex < 0 || itemIndex >= contentItems.length || preloadedIframes[itemIndex]) return;
             const itemData = contentItems[itemIndex];
             const itemDiv = swipeContainer.querySelector(`.swipe-item[data-index='${itemIndex}']`);
             if (!itemDiv) return;
-            
+
             if (itemData.type === 'video') {
                 if (typeof YT !== 'undefined' && typeof YT.Player !== 'undefined') {
                     createYoutubePlayer(itemData, itemDiv);
@@ -381,7 +475,7 @@
                 preloadedIframes[itemIndex] = iframe;
             }
         }
-        
+
         function updateDisplayedItemInfo(index) {
             if (index >= 0 && index < contentItems.length) {
                 const item = contentItems[index];
@@ -391,11 +485,8 @@
         }
 
         function initializeVisibleContent() {
-            // Ensure container is empty before adding new items
-            swipeContainer.innerHTML = '';
             contentItems.forEach((item, index) => createItemElement(item, index));
-            // Use clientHeight of the scroll container for accuracy
-            swipeContainer.scrollTop = currentItemIndex * swipeContainer.clientHeight;
+            swipeContainer.scrollTop = currentItemIndex * window.innerHeight;
             updatePreloadedContent(currentItemIndex);
             updateDisplayedItemInfo(currentItemIndex);
         }
@@ -408,20 +499,22 @@
             }
         }
 
-        // --- Scroll and Navigation Logic (REVISED) ---
-        function handleScrollEnd() {
-            const newIndex = Math.round(swipeContainer.scrollTop / swipeContainer.clientHeight);
+        function scrollToItem(index) {
+            const newValidIndex = Math.max(0, Math.min(index, contentItems.length - 1));
+            swipeContainer.scrollTo({ top: newValidIndex * window.innerHeight, behavior: 'smooth' });
+        }
 
+        // --- Scroll and Navigation Logic ---
+        function handleScrollEnd() {
+            const newIndex = Math.round(swipeContainer.scrollTop / window.innerHeight);
             if (newIndex !== currentItemIndex && newIndex >= 0 && newIndex < contentItems.length) {
                 const previousItemData = contentItems[currentItemIndex];
                 if (previousItemData?.type === 'video' && youtubePlayers[previousItemData.id]) {
                     youtubePlayers[previousItemData.id].pauseVideo();
                 }
-
                 currentItemIndex = newIndex;
                 updatePreloadedContent(currentItemIndex);
                 updateDisplayedItemInfo(currentItemIndex);
-
                 const currentItemData = contentItems[currentItemIndex];
                 if (currentItemData.type === 'video' && youtubePlayers[currentItemData.id]) {
                     setTimeout(() => youtubePlayers[currentItemData.id]?.playVideo(), 100);
@@ -429,21 +522,50 @@
             }
         }
 
-        // We removed the manual touch handling for scrolling.
-        // Instead, we just listen for the end of a native scroll event.
+        // --- Touch Handling for App Navigation ---
+        appContainer.addEventListener('touchstart', (e) => {
+            if (uiActionsSidebar.contains(e.target) && e.touches.length === 1) {
+                isAppNavigating = true;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = swipeContainer.scrollTop;
+            } else {
+                isAppNavigating = false;
+            }
+        }, { passive: true });
+
+        appContainer.addEventListener('touchmove', (e) => {
+            if (!isAppNavigating) return;
+            e.preventDefault();
+            swipeContainer.scrollTop = touchStartScrollTop - (e.touches[0].clientY - touchStartY);
+        }, { passive: false });
+
+        appContainer.addEventListener('touchend', (e) => {
+            if (!isAppNavigating) return;
+            isAppNavigating = false;
+            if (Math.abs(e.changedTouches[0].clientY - touchStartY) > MIN_SWIPE_DISTANCE_FOR_NAVIGATION) {
+                scrollToItem(currentItemIndex + (e.changedTouches[0].clientY < touchStartY ? 1 : -1));
+            } else {
+                scrollToItem(currentItemIndex);
+            }
+        });
+
         let scrollEndTimeout;
         swipeContainer.addEventListener('scroll', () => {
             clearTimeout(scrollEndTimeout);
-            scrollEndTimeout = setTimeout(handleScrollEnd, 150); // A 150ms delay is good for detecting scroll end.
+            scrollEndTimeout = setTimeout(handleScrollEnd, 150);
         });
 
         // --- Initialization on DOM Load ---
         document.addEventListener('DOMContentLoaded', () => {
+            const startScreen = document.getElementById('startScreen');
+            const startGameTrigger = document.getElementById('startGameTrigger');
+
+            // Set up listener for the "Play Games" button on the start screen
             if (startGameTrigger) {
                 startGameTrigger.addEventListener('click', (e) => {
                     e.preventDefault();
                     startScreen.style.display = 'none';
-                    appContainer.style.display = 'flex'; // Use flex now
+                    appContainer.style.display = 'block';
                     requestFullScreen();
 
                     // Check if YouTube API is ready, if not, wait for it.
@@ -462,28 +584,35 @@
                 });
             }
 
-            // --- Set up Home Button Listener ---
+            // --- Home button listener ---
+            const homeButton = document.getElementById('homeButton');
             if (homeButton) {
-                homeButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    appContainer.style.display = 'none';
-                    startScreen.style.display = 'flex';
-
-                    // Also pause the current video so audio doesn't keep playing
+                homeButton.addEventListener('click', () => {
+                    // Pause any playing video before switching screens
                     const currentItemData = contentItems[currentItemIndex];
-                     if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
+                    if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
                         youtubePlayers[currentItemData.id].pauseVideo();
+                    }
+
+                    // Hide the app and show the start screen
+                    appContainer.style.display = 'none';
+                    startScreen.style.display = 'flex'; // Use flex as it's a flex container
+
+                    // Exit fullscreen mode if it's active
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen().catch(err => console.error(err));
                     }
                 });
             }
 
-            // --- Set up other UI button listeners ---
+
+            // --- Set up UI button listeners for the main app ---
             fullscreenButton?.addEventListener('click', requestFullScreen);
             profileFullscreenButton?.addEventListener('click', requestFullScreen);
             uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
                 if (button.id !== 'fullscreenButton' && button.id !== 'profileFullscreenButton') {
                     button.addEventListener('click', (e) => {
-                        e.stopPropagation(); 
+                        e.stopPropagation();
                         console.log(`UI Button clicked: ${button.querySelector('span')?.textContent || 'icon'}`);
                     });
                 }
