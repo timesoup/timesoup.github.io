@@ -19,7 +19,7 @@
             background-color: #000;
         }
 
-        /* --- Start Screen Styles (from chrome_start.html) --- */
+        /* --- Start Screen Styles --- */
         #startScreen {
             height: 100vh;
             overflow-y: auto;
@@ -51,7 +51,7 @@
             text-overflow: ellipsis;
         }
 
-        /* --- Main App Styles (from index.html) --- */
+        /* --- Main App Styles --- */
         #appContainer {
             width: 100vw;
             height: 100vh;
@@ -243,8 +243,8 @@
     <div id="startScreen" class="text-white flex flex-col items-center">
         <div class="flex-grow w-full max-w-lg px-4 flex flex-col items-center">
             <!-- Google Logo -->
-            <div class="my-8">
-                <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png"
+            <div class="my-8 cursor-pointer">
+                <img id="googleLogo" src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png"
                      onerror="this.src='https://placehold.co/272x92/000000/ffffff?text=Google';"
                      alt="Google Logo" class="w-60 h-auto">
             </div>
@@ -352,10 +352,8 @@
             { type: 'game', url: 'https://gamesnacks.com/games/5pj67mkaqugmo', id: 'game1', title: 'Fruit cube blast', description: 'Best match 3 game' },
             { type: 'game', url: 'https://gamesnacks.com/games/0s1do8fmhrn9g#sc=1746578696103593132-2828726', id: 'game2', title: 'Family Feud', description: 'Guess their answer' },
             { type: 'game', url: 'https://gamesnacks.com/games/7u583tvdi3f00', id: 'game3', title: 'Letter Links', description: 'Find the words hidden in the puzzle' },
-
             { type: 'game', url: 'https://timesoup.github.io/game1.html', id: 'game4', title: 'Gen Game 1', description: 'Find the words hidden in the puzzle' },
             { type: 'game', url: 'https://timesoup.github.io/game2.html', id: 'game5', title: 'Gen Game 2', description: 'Find the words hidden in the puzzle' },
-
             { type: 'video', videoId: 'k6XZ-hLbs-c', id: 'video0', title: 'chang0000', description: 'How\'s it feel when my crush like me back? 😳 #chang0000 #chany #c4class' },
             { type: 'video', videoId: 'WjHgQsXEAFA', id: 'video1', title: 'engineerusa44', description: '181/LikeComment Subscribe"#SEO-driven#adamrose #construction #engineering #NYC #NewYorkCity #NYCVlog' },
             { type: 'video', videoId: 'J2Zqn4dXuno', id: 'video2', title: 'LUCKY MAN 10M', description: 'Moment Before Cooked ☠️ #trollface #edit #shorts' },
@@ -363,21 +361,19 @@
             { type: 'video', videoId: 'jKISt-_GeQk', id: 'video4', title: 'RedFrame2', description: '#Move' },
             { type: 'video', videoId: 'gWF6RiY251M', id: 'video5', title: 'JasminandJames', description: 'Magic trick REVEALED… 👀😱🤣 | Jasmin and James #Shorts' },
             { type: 'video', videoId: 'cn965afzoe8', id: 'video6', title: 'ZachKing', description: 'Who enjoyed seeing the solar eclipse' },
-
-
-
             { type: 'video', videoId: '9efannizT9E', id: 'video7', title: 'Bachiraa-Editz', description: 'The Best Parkour 🗿' }
-
         ];
 
         // --- State ---
         let isYouTubeApiReady = false;
         let currentItemIndex = 0;
+        let contentInitialized = false; // Flag to check if content is loaded
         const youtubePlayers = {};
         const preloadedIframes = {};
         const PRELOAD_AHEAD = 1;
 
         // --- DOM Elements ---
+        const startScreen = document.getElementById('startScreen');
         const appContainer = document.getElementById('appContainer');
         const swipeContainer = document.getElementById('swipeContainer');
         const uiOverlay = document.getElementById('uiOverlay');
@@ -386,12 +382,10 @@
         const uiDescription = uiOverlay.querySelector('.description');
         const fullscreenButton = document.getElementById('fullscreenButton');
         const profileFullscreenButton = document.getElementById('profileFullscreenButton');
+        const startGameTrigger = document.getElementById('startGameTrigger');
+        const googleLogo = document.getElementById('googleLogo');
+        const homeButton = document.getElementById('homeButton');
 
-        // --- Swipe Control State ---
-        let touchStartY = 0;
-        let touchStartScrollTop = 0;
-        let isAppNavigating = false;
-        const MIN_SWIPE_DISTANCE_FOR_NAVIGATION = 60;
 
         // --- App Initialization and Control ---
         function requestFullScreen() {
@@ -402,12 +396,32 @@
             else if (elem.msRequestFullscreen) elem.msRequestFullscreen().catch(console.warn);
         }
 
+        function startApp() {
+            startScreen.style.display = 'none';
+            appContainer.style.display = 'block';
+            requestFullScreen();
+
+            if (contentInitialized) return; // Don't re-initialize
+
+            if (isYouTubeApiReady) {
+                initializeVisibleContent();
+            } else {
+                console.log("Start clicked, waiting for YouTube API...");
+                const apiWaitInterval = setInterval(() => {
+                    if (isYouTubeApiReady) {
+                        clearInterval(apiWaitInterval);
+                        console.log("YouTube API is now ready, initializing content.");
+                        initializeVisibleContent();
+                    }
+                }, 100);
+            }
+        }
+
+
         // --- YouTube API Integration ---
         window.onYouTubeIframeAPIReady = function() {
             console.log("YouTube IFrame API Ready");
             isYouTubeApiReady = true;
-            // IMPORTANT: We no longer initialize content automatically here.
-            // Initialization is now triggered by the user starting the app.
         };
 
         function createYoutubePlayer(item, itemDiv) {
@@ -435,7 +449,7 @@
         }
 
         function onPlayerStateChange(event) {
-            // Future logic for state changes (e.g., auto-advancing on video end) can go here.
+            // Future logic for state changes
         }
 
         // --- Content Loading and Management ---
@@ -485,6 +499,8 @@
         }
 
         function initializeVisibleContent() {
+            if (contentInitialized) return;
+            contentInitialized = true;
             contentItems.forEach((item, index) => createItemElement(item, index));
             swipeContainer.scrollTop = currentItemIndex * window.innerHeight;
             updatePreloadedContent(currentItemIndex);
@@ -522,91 +538,43 @@
             }
         }
 
-        // --- Touch Handling for App Navigation ---
-        appContainer.addEventListener('touchstart', (e) => {
-            if (uiActionsSidebar.contains(e.target) && e.touches.length === 1) {
-                isAppNavigating = true;
-                touchStartY = e.touches[0].clientY;
-                touchStartScrollTop = swipeContainer.scrollTop;
-            } else {
-                isAppNavigating = false;
-            }
-        }, { passive: true });
-
-        appContainer.addEventListener('touchmove', (e) => {
-            if (!isAppNavigating) return;
-            e.preventDefault();
-            swipeContainer.scrollTop = touchStartScrollTop - (e.touches[0].clientY - touchStartY);
-        }, { passive: false });
-
-        appContainer.addEventListener('touchend', (e) => {
-            if (!isAppNavigating) return;
-            isAppNavigating = false;
-            if (Math.abs(e.changedTouches[0].clientY - touchStartY) > MIN_SWIPE_DISTANCE_FOR_NAVIGATION) {
-                scrollToItem(currentItemIndex + (e.changedTouches[0].clientY < touchStartY ? 1 : -1));
-            } else {
-                scrollToItem(currentItemIndex);
-            }
-        });
-
         let scrollEndTimeout;
         swipeContainer.addEventListener('scroll', () => {
             clearTimeout(scrollEndTimeout);
             scrollEndTimeout = setTimeout(handleScrollEnd, 150);
         });
 
-        // --- Initialization on DOM Load ---
+        // --- Event Listeners Setup ---
         document.addEventListener('DOMContentLoaded', () => {
-            const startScreen = document.getElementById('startScreen');
-            const startGameTrigger = document.getElementById('startGameTrigger');
 
-            // Set up listener for the "Play Games" button on the start screen
+            // --- App Start Triggers ---
             if (startGameTrigger) {
                 startGameTrigger.addEventListener('click', (e) => {
                     e.preventDefault();
-                    startScreen.style.display = 'none';
-                    appContainer.style.display = 'block';
-                    requestFullScreen();
-
-                    // Check if YouTube API is ready, if not, wait for it.
-                    if (isYouTubeApiReady) {
-                        initializeVisibleContent();
-                    } else {
-                        console.log("Start clicked, waiting for YouTube API...");
-                        const apiWaitInterval = setInterval(() => {
-                            if (isYouTubeApiReady) {
-                                clearInterval(apiWaitInterval);
-                                console.log("YouTube API is now ready, initializing content.");
-                                initializeVisibleContent();
-                            }
-                        }, 100);
-                    }
+                    startApp();
+                });
+            }
+            if (googleLogo) {
+                 googleLogo.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    startApp();
                 });
             }
 
             // --- Home button listener ---
-            const homeButton = document.getElementById('homeButton');
             if (homeButton) {
                 homeButton.addEventListener('click', () => {
-                    // Pause any playing video before switching screens
                     const currentItemData = contentItems[currentItemIndex];
                     if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
                         youtubePlayers[currentItemData.id].pauseVideo();
                     }
-
-                    // Hide the app and show the start screen
                     appContainer.style.display = 'none';
-                    startScreen.style.display = 'flex'; // Use flex as it's a flex container
-
-                    // Exit fullscreen mode if it's active
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen().catch(err => console.error(err));
-                    }
+                    startScreen.style.display = 'flex';
+                    // Note: No longer exiting full-screen here
                 });
             }
 
-
-            // --- Set up UI button listeners for the main app ---
+            // --- UI button listeners ---
             fullscreenButton?.addEventListener('click', requestFullScreen);
             profileFullscreenButton?.addEventListener('click', requestFullScreen);
             uiOverlay.querySelectorAll('.actions-sidebar .action-button').forEach(button => {
