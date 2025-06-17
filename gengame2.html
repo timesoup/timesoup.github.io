@@ -1,0 +1,357 @@
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Block</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #333;
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            flex-direction: column;
+        }
+        canvas {
+            border: 4px solid #fff;
+            border-radius: 8px;
+            background-color: #70c5ce; /* Classic sky blue */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        #game-container {
+            position: relative;
+            width: 320px;
+            height: 480px;
+        }
+        #ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Allows clicks to pass through to canvas */
+        }
+        #score {
+            font-size: 3em;
+            text-shadow: 3px 3px 0px #000;
+            z-index: 10;
+            position: absolute;
+            top: 20px;
+        }
+        #start-message, #game-over-message {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: all; /* Re-enable pointer events for buttons */
+        }
+        #game-over-message {
+            display: none; /* Hidden by default */
+        }
+        h1 {
+            margin: 0 0 10px 0;
+        }
+        p {
+            margin: 0 0 20px 0;
+            font-size: 0.8em;
+        }
+        button {
+            font-family: 'Press Start 2P', cursive;
+            padding: 10px 20px;
+            font-size: 1em;
+            border: 2px solid white;
+            background-color: #f7b42c;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-shadow: 2px 2px 0px #000;
+            box-shadow: 0 4px #c28e22;
+            transition: all 0.1s ease;
+        }
+        button:active {
+            box-shadow: 0 2px #c28e22;
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body data-llm4sre-ubi-toggler-called_36.6="true" data-llm4sre-ubi-main-called_36.6="true">
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="320" height="480"></canvas>
+        <div id="ui-container">
+            <div id="score" style="display: none;">0</div>
+            <div id="start-message" style="display: flex;">
+                <h1>Flappy Block</h1>
+                <p>Click or Press Space to Flap</p>
+                <button id="startButton">Start Game</button>
+            </div>
+            <div id="game-over-message" style="display: none;">
+                <h1>Game Over</h1>
+                <p id="finalScore"></p>
+                <button id="restartButton">Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const scoreDisplay = document.getElementById('score');
+        const startMessage = document.getElementById('start-message');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+
+        // Game state
+        let gameState = 'start'; // 'start', 'playing', 'gameOver'
+        let frame = 0;
+        let score = 0;
+
+        // Game constants
+        const GRAVITY = 0.3;
+        const FLAP_STRENGTH = -5.5;
+        const PIPE_SPEED = 2;
+        const PIPE_GAP = 120;
+        const PIPE_WIDTH = 52;
+        const PIPE_SPACING = 220; // horizontal distance between pipes
+
+        // Bird properties
+        const bird = {
+            x: 50,
+            y: 200,
+            width: 20,
+            height: 20,
+            velocity: 0
+        };
+
+        // Pipe array
+        let pipes = [];
+
+        // --- Drawing Functions ---
+        function drawBird() {
+            // Main body (yellow square)
+            ctx.fillStyle = '#f7b42c'; // Yellow color
+            ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+
+            // Eye (small black square)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(bird.x + 12, bird.y + 5, 4, 4);
+
+            // Beak (orange triangle)
+            ctx.fillStyle = '#f77e2c';
+            ctx.beginPath();
+            ctx.moveTo(bird.x + bird.width, bird.y + bird.height / 2 - 2);
+            ctx.lineTo(bird.x + bird.width + 6, bird.y + bird.height / 2);
+            ctx.lineTo(bird.x + bird.width, bird.y + bird.height / 2 + 6);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawPipes() {
+            pipes.forEach(pipe => {
+                ctx.fillStyle = '#2fb03b'; // Green pipe color
+                // Top pipe
+                ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+                // Bottom pipe
+                ctx.fillRect(pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, canvas.height - pipe.topHeight - PIPE_GAP);
+
+                // Pipe borders to give a 3D effect
+                ctx.fillStyle = '#258c2f';
+                ctx.fillRect(pipe.x, pipe.topHeight - 10, PIPE_WIDTH, 10);
+                ctx.fillRect(pipe.x, canvas.height - pipe.bottomHeight - 10, PIPE_WIDTH, 10);
+            });
+        }
+
+        function drawBackground() {
+            ctx.fillStyle = '#70c5ce';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Simple clouds
+            ctx.fillStyle = 'white';
+            ctx.fillRect(50, 80, 60, 20);
+            ctx.fillRect(40, 90, 80, 20);
+            ctx.fillRect(180, 50, 70, 25);
+            ctx.fillRect(170, 65, 90, 25);
+        }
+        
+        function drawGround() {
+             ctx.fillStyle = '#e69a53'; // Ground color
+             ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+             ctx.fillStyle = '#c27e43'; // Ground shadow
+             ctx.fillRect(0, canvas.height - 20, canvas.width, 5);
+        }
+
+        // --- Game Logic ---
+        function updateBird() {
+            bird.velocity += GRAVITY;
+            bird.y += bird.velocity;
+
+            // Prevent bird from going off the top of the screen
+            if (bird.y < 0) {
+                bird.y = 0;
+                bird.velocity = 0;
+            }
+
+            // Check for collision with ground
+            if (bird.y + bird.height > canvas.height - 20) {
+               gameOver();
+            }
+        }
+
+        function updatePipes() {
+            // Move pipes to the left
+            pipes.forEach(pipe => {
+                pipe.x -= PIPE_SPEED;
+            });
+
+            // Remove pipes that are off-screen
+            pipes = pipes.filter(pipe => pipe.x + PIPE_WIDTH > 0);
+
+            // Add new pipes
+            if (frame % Math.floor(PIPE_SPACING / PIPE_SPEED) === 0) {
+                const topHeight = Math.random() * (canvas.height - PIPE_GAP - 100) + 50;
+                pipes.push({
+                    x: canvas.width,
+                    topHeight: topHeight,
+                    bottomHeight: canvas.height - topHeight - PIPE_GAP,
+                    passed: false
+                });
+            }
+        }
+        
+        function checkCollisions() {
+            const birdRight = bird.x + bird.width;
+            const birdBottom = bird.y + bird.height;
+
+            for (let pipe of pipes) {
+                const pipeRight = pipe.x + PIPE_WIDTH;
+
+                // Check if bird is within the horizontal bounds of the pipe
+                if (birdRight > pipe.x && bird.x < pipeRight) {
+                    // Check if bird hits the top or bottom pipe
+                    if (bird.y < pipe.topHeight || birdBottom > pipe.topHeight + PIPE_GAP) {
+                        gameOver();
+                        return;
+                    }
+                }
+                
+                // Check for scoring
+                if (pipe.x < bird.x && !pipe.passed) {
+                    pipe.passed = true;
+                    score++;
+                    scoreDisplay.textContent = score;
+                }
+            }
+        }
+
+
+        function flap() {
+            if (gameState === 'playing') {
+                bird.velocity = FLAP_STRENGTH;
+            }
+        }
+
+        function resetGame() {
+            bird.y = 200;
+            bird.velocity = 0;
+            pipes = [];
+            score = 0;
+            frame = 0;
+            scoreDisplay.textContent = score;
+        }
+
+        function startGame() {
+            gameState = 'playing';
+            resetGame();
+            startMessage.style.display = 'none';
+            gameOverMessage.style.display = 'none';
+            scoreDisplay.style.display = 'block';
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameState = 'gameOver';
+            scoreDisplay.style.display = 'none';
+            finalScoreDisplay.textContent = `Score: ${score}`;
+            gameOverMessage.style.display = 'flex';
+        }
+
+        // --- Main Game Loop ---
+        function gameLoop() {
+            if (gameState === 'playing') {
+                // Update game state
+                updateBird();
+                updatePipes();
+                checkCollisions();
+
+                // Draw everything
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawBackground();
+                drawPipes();
+                drawGround();
+                drawBird();
+
+                frame++;
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // --- Initial Screen Setup ---
+        function init() {
+            scoreDisplay.style.display = 'none';
+            gameOverMessage.style.display = 'none';
+            startMessage.style.display = 'flex';
+            
+            // Draw initial static screen
+            drawBackground();
+            drawGround();
+            ctx.fillStyle = '#f7b42c';
+            ctx.fillRect(bird.x, bird.y, bird.width, bird.height); // static bird
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                if(gameState === 'playing') {
+                    flap();
+                }
+            }
+        });
+        
+        canvas.addEventListener('click', () => {
+             if(gameState === 'playing') {
+                flap();
+            }
+        });
+
+        startButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent canvas click from firing
+            startGame();
+        });
+
+        restartButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            startGame();
+        });
+        
+        // Let's start the show!
+        init();
+
+    </script>
+
+
+<simple-floater class="llm-extension-marker" closed="" closeable="" uitheme="2"><div style="padding: 5px; height: 100%; box-sizing: border-box;"><div style="height: 100%;"><!----><workspace-select><div style="height: 100%;"><chat-component displaycontext="" show_inline_agent_icon="" hide_trash_button="" enableautocomplete="" enablecommands="" enablehelpoverlay=""><context-holder></context-holder></chat-component></div></workspace-select></div></div></simple-floater></body></html>
