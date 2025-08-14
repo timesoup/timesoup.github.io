@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1f1f1f;
+            color: #e8eaed;
+        }
+        /* Custom scrollbar for horizontal sections */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .app-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            object-fit: cover;
+        }
+        .sponsored-app-icon {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            object-fit: cover;
+        }
+        .rating-star {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+    </style>
+</head>
+<body class="max-w-md mx-auto bg-[#121212]">
+
+    <!-- Main Container -->
+    <div class="w-full min-h-screen">
+
+        <!-- Top Header -->
+        <header class="p-4 flex items-center justify-between sticky top-0 bg-[#121212] z-10">
+            <div class="flex-1 bg-[#3c4043] rounded-full px-4 py-3 flex items-center">
+                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <span class="ml-4 text-gray-300">Search apps & games</span>
+            </div>
+            <div class="flex items-center ml-4 space-x-4">
+                 <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+                <!-- User should replace 'profile_pic.jpg' with their image -->
+                <img src="profile_pic.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/7e22ce/ffffff?text=U';" alt="User Profile" class="w-8 h-8 rounded-full">
+            </div>
+        </header>
+
+        <!-- Top Navigation -->
+        <nav class="px-2 pb-2 sticky top-[80px] bg-[#121212] z-10">
+            <div class="flex space-x-4 text-sm text-gray-300 border-b border-gray-700 overflow-x-auto no-scrollbar">
+                <a href="#" class="font-semibold text-white border-b-2 border-green-400 px-3 py-2 flex-shrink-0">For you</a>
+                <a href="#" class="px-3 py-2 flex-shrink-0">Top charts</a>
+                <a href="#" class="px-3 py-2 flex-shrink-0">Other devices</a>
+                <a href="#" class="px-3 py-2 flex-shrink-0">Kids</a>
+                <a href="#" class="px-3 py-2 flex-shrink-0">Categories</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="space-y-8 p-4">
+
+            <!-- Now Available Section -->
+            <section>
+                <h2 class="text-lg font-semibold mb-3">Now available</h2>
+                <div class="relative rounded-2xl overflow-hidden">
+                    <!-- User should replace 'banner_app.png' -->
+                    <img src="banner_app.png" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1a1a1a/000000?text=App+Banner';" alt="App Banner" class="w-full h-auto">
+                    <div class="absolute bottom-0 left-0 p-4 bg-gradient-to-t from-black/70 to-transparent w-full">
+                        <div class="flex items-center">
+                            <!-- User should replace 'castfox_icon.png' -->
+                            <img src="castfox_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/000000/ffffff?text=C';" alt="App Icon" class="app-icon mr-4">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-white">CastFox - AI Podcast Agent</h3>
+                                <p class="text-sm text-gray-300">Castbox.FM</p>
+                                <div class="flex items-center text-xs text-gray-400 mt-1">
+                                    <span>4.0</span>
+                                    <svg class="rating-star ml-1" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+                                </div>
+                            </div>
+                            <button class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sponsored Section -->
+            <section>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-semibold">Sponsored · Suggested for you</h2>
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
+                </div>
+                <div class="flex space-x-4 overflow-x-auto no-scrollbar">
+                    <!-- App 1 -->
+                    <div class="flex-shrink-0 w-28 text-center">
+                        <!-- User should replace 'tiktok_icon.png' -->
+                        <img src="tiktok_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/000000/ffffff?text=TT';" alt="TikTok" class="sponsored-app-icon mx-auto">
+                        <h4 class="text-sm mt-2 truncate text-gray-200">TikTok - Videos, Shop</h4>
+                        <p class="text-xs text-gray-400">4.1 ★</p>
+                    </div>
+                    <!-- App 2 -->
+                    <div class="flex-shrink-0 w-28 text-center">
+                        <!-- User should replace 'tango_icon.png' -->
+                        <img src="tango_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/f06292/ffffff?text=T';" alt="Tango" class="sponsored-app-icon mx-auto">
+                        <h4 class="text-sm mt-2 truncate text-gray-200">Tango - Live Stream</h4>
+                        <p class="text-xs text-gray-400">4.4 ★</p>
+                    </div>
+                    <!-- App 3 -->
+                    <div class="flex-shrink-0 w-28 text-center">
+                        <!-- User should replace 'umamusume_icon.png' -->
+                        <img src="umamusume_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/9575cd/ffffff?text=U';" alt="Umamusume" class="sponsored-app-icon mx-auto">
+                        <h4 class="text-sm mt-2 truncate text-gray-200">Umamusume: Pretty Derby</h4>
+                        <p class="text-xs text-gray-400">4.1 ★</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- From the Editors Section -->
+            <section>
+                <a href="new.html" id="video-link" class="block rounded-2xl overflow-hidden relative bg-yellow-500">
+                    <!-- User should provide 'play_games_banner.mp4' -->
+                    <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                        <source src="play_games_banner.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="absolute bottom-0 left-0 p-4 text-black w-full bg-gradient-to-t from-yellow-500/50 to-transparent">
+                        <p class="text-xs font-semibold">From the editors</p>
+                        <h3 class="text-xl font-bold mt-1">Make music anywhere: Powerful apps for musicians</h3>
+                        <p class="text-sm mt-1">Your own pocket studio awaits</p>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Dating Apps Section -->
+            <section>
+                 <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-semibold">Dating apps</h2>
+                    <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </div>
+                <div class="space-y-4">
+                    <!-- App 1 -->
+                    <div class="flex items-center">
+                        <!-- User should replace 'fruitz_icon.png' -->
+                        <img src="fruitz_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ec4899/ffffff?text=F';" alt="Fruitz" class="app-icon">
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-base text-gray-200">Fruitz - Dating app</h4>
+                            <p class="text-sm text-gray-400">Dating</p>
+                        </div>
+                        <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                    </div>
+                    <!-- App 2 -->
+                    <div class="flex items-center">
+                        <!-- User should replace 'glam_icon.png' -->
+                        <img src="glam_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/f472b6/ffffff?text=G';" alt="GLAM" class="app-icon">
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-base text-gray-200">GLAM - Dating & Romance</h4>
+                            <p class="text-sm text-gray-400">Dating · Casual · Social</p>
+                        </div>
+                        <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <footer class="sticky bottom-0 bg-[#1e1e1e] border-t border-gray-700">
+            <div class="flex justify-around items-center h-20 text-xs text-gray-400">
+                <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm14 0a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM18 3v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm12.5 6.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3ZM4.5 9.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3Zm10 11a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM6.5 20.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm6-17v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Z"/></svg>
+                    <span>Games</span>
+                </a>
+                <a href="#" class="text-center flex flex-col items-center justify-center bg-green-800/30 text-green-400 rounded-full px-4 py-2">
+                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+                    <span>Apps</span>
+                </a>
+                <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                    <span>Search</span>
+                </a>
+                <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    <span>Offers</span>
+                </a>
+                 <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                    <span>Books</span>
+                </a>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
