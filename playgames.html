@@ -2,19 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Play Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* --- General & Play Store Styles --- */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #1f1f1f;
             color: #e8eaed;
+            overscroll-behavior-y: contain;
+            margin: 0;
+            padding: 0;
         }
-        /* Custom scrollbar for horizontal sections */
+        body.no-scroll {
+            overflow: hidden; /* Prevent body scroll when game is active */
+        }
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -39,166 +46,675 @@
             height: 12px;
             fill: currentColor;
         }
+
+        /* --- Game App Styles --- */
+        #appContainer {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #000;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+        #main-content {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        #swipeContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-snap-type: y mandatory;
+        }
+        #swipeContainer::-webkit-scrollbar {
+            display: none;
+        }
+        .swipe-item {
+            width: 100%;
+            height: 100%;
+            flex-shrink: 0;
+            background-color: #111;
+            overflow: hidden;
+            position: relative;
+            scroll-snap-align: start;
+        }
+        .loader {
+            border: 6px solid #444;
+            border-top: 6px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .iframe-content {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #swipeCaptureLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            color: white;
+            box-sizing: border-box;
+        }
+        #uiOverlay .actions-sidebar,
+        #uiOverlay .content-info {
+            pointer-events: auto;
+        }
+        .actions-sidebar {
+            position: absolute;
+            right: 8px;
+            bottom: 80px; /* Adjusted for bottom nav */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .actions-sidebar .action-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 5px;
+        }
+        .actions-sidebar .action-button i {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+        .actions-sidebar .profile-icon-container {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            border: 2px solid white;
+        }
+        .actions-sidebar .profile-icon-container i {
+             font-size: 20px;
+             color: #fff;
+        }
+        .content-info {
+            padding: 12px;
+            padding-bottom: 80px; /* Adjusted for bottom nav */
+            background: linear-gradient(to top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+        }
+        .content-info .channel-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .content-info .description {
+            font-size: 14px;
+            margin-top: 4px;
+            line-height: 1.3;
+        }
+        #bottom-nav-bar {
+            flex-shrink: 0;
+            width: 100%;
+            background-color: #0F0F0F;
+            border-top: 1px solid rgba(50, 50, 50, 0.8);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 5px 0;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 30;
+        }
+        .nav-button {
+            background-color: transparent;
+            border: none;
+            color: #AAAAAA;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 5px 8px;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .nav-button .icon {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 3px;
+            font-size: 24px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .nav-button .icon svg {
+            fill: currentColor;
+            width: 100%;
+            height: 100%;
+        }
+        .nav-button.active {
+            color: #FFFFFF;
+        }
     </style>
 </head>
 <body class="max-w-md mx-auto bg-[#121212]">
 
-    <!-- Main Container -->
-    <div class="w-full min-h-screen">
+    <!-- Original Play Store Content -->
+    <div id="playStoreContainer">
+        <div class="w-full min-h-screen">
+            <!-- Top Header -->
+            <header class="p-4 flex items-center justify-between sticky top-0 bg-[#121212] z-10">
+                <div class="flex-1 bg-[#3c4043] rounded-full px-4 py-3 flex items-center">
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <span class="ml-4 text-gray-300">Search apps & games</span>
+                </div>
+                <div class="flex items-center ml-4 space-x-4">
+                     <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+                    <img src="profile_pic.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/7e22ce/ffffff?text=U';" alt="User Profile" class="w-8 h-8 rounded-full">
+                </div>
+            </header>
 
-        <!-- Top Header -->
-        <header class="p-4 flex items-center justify-between sticky top-0 bg-[#121212] z-10">
-            <div class="flex-1 bg-[#3c4043] rounded-full px-4 py-3 flex items-center">
-                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <span class="ml-4 text-gray-300">Search apps & games</span>
-            </div>
-            <div class="flex items-center ml-4 space-x-4">
-                 <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-                <!-- User should replace 'profile_pic.jpg' with their image -->
-                <img src="profile_pic.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/7e22ce/ffffff?text=U';" alt="User Profile" class="w-8 h-8 rounded-full">
-            </div>
-        </header>
+            <!-- Top Navigation -->
+            <nav class="px-2 pb-2 sticky top-[80px] bg-[#121212] z-10">
+                <div class="flex space-x-4 text-sm text-gray-300 border-b border-gray-700 overflow-x-auto no-scrollbar">
+                    <a href="#" class="font-semibold text-white border-b-2 border-green-400 px-3 py-2 flex-shrink-0">For you</a>
+                    <a href="#" class="px-3 py-2 flex-shrink-0">Top charts</a>
+                    <a href="#" class="px-3 py-2 flex-shrink-0">Other devices</a>
+                    <a href="#" class="px-3 py-2 flex-shrink-0">Kids</a>
+                    <a href="#" class="px-3 py-2 flex-shrink-0">Categories</a>
+                </div>
+            </nav>
 
-        <!-- Top Navigation -->
-        <nav class="px-2 pb-2 sticky top-[80px] bg-[#121212] z-10">
-            <div class="flex space-x-4 text-sm text-gray-300 border-b border-gray-700 overflow-x-auto no-scrollbar">
-                <a href="#" class="font-semibold text-white border-b-2 border-green-400 px-3 py-2 flex-shrink-0">For you</a>
-                <a href="#" class="px-3 py-2 flex-shrink-0">Top charts</a>
-                <a href="#" class="px-3 py-2 flex-shrink-0">Other devices</a>
-                <a href="#" class="px-3 py-2 flex-shrink-0">Kids</a>
-                <a href="#" class="px-3 py-2 flex-shrink-0">Categories</a>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="space-y-8 p-4">
-
-            <!-- Now Available Section -->
-            <section>
-                <h2 class="text-lg font-semibold mb-3">Now available</h2>
-                <div class="relative rounded-2xl overflow-hidden">
-                    <!-- User should replace 'banner_app.png' -->
-                    <img src="banner_app.png" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1a1a1a/000000?text=App+Banner';" alt="App Banner" class="w-full h-auto">
-                    <div class="absolute bottom-0 left-0 p-4 bg-gradient-to-t from-black/70 to-transparent w-full">
-                        <div class="flex items-center">
-                            <!-- User should replace 'castfox_icon.png' -->
-                            <img src="castfox_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/000000/ffffff?text=C';" alt="App Icon" class="app-icon mr-4">
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-white">CastFox - AI Podcast Agent</h3>
-                                <p class="text-sm text-gray-300">Castbox.FM</p>
-                                <div class="flex items-center text-xs text-gray-400 mt-1">
-                                    <span>4.0</span>
-                                    <svg class="rating-star ml-1" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+            <!-- Main Content -->
+            <main class="space-y-8 p-4">
+                <!-- Now Available Section -->
+                <section>
+                    <h2 class="text-lg font-semibold mb-3">Now available</h2>
+                    <div class="relative rounded-2xl overflow-hidden">
+                        <img src="banner_app.png" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1a1a1a/000000?text=App+Banner';" alt="App Banner" class="w-full h-auto">
+                        <div class="absolute bottom-0 left-0 p-4 bg-gradient-to-t from-black/70 to-transparent w-full">
+                            <div class="flex items-center">
+                                <img src="castfox_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/000000/ffffff?text=C';" alt="App Icon" class="app-icon mr-4">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-white">CastFox - AI Podcast Agent</h3>
+                                    <p class="text-sm text-gray-300">Castbox.FM</p>
+                                    <div class="flex items-center text-xs text-gray-400 mt-1">
+                                        <span>4.0</span>
+                                        <svg class="rating-star ml-1" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path></svg>
+                                    </div>
                                 </div>
+                                <button class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
                             </div>
-                            <button class="bg-blue-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <!-- Sponsored Section -->
-            <section>
-                <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-semibold">Sponsored · Suggested for you</h2>
-                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
-                </div>
-                <div class="flex space-x-4 overflow-x-auto no-scrollbar">
-                    <!-- App 1 -->
-                    <div class="flex-shrink-0 w-28 text-center">
-                        <!-- User should replace 'tiktok_icon.png' -->
-                        <img src="tiktok_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/000000/ffffff?text=TT';" alt="TikTok" class="sponsored-app-icon mx-auto">
-                        <h4 class="text-sm mt-2 truncate text-gray-200">TikTok - Videos, Shop</h4>
-                        <p class="text-xs text-gray-400">4.1 ★</p>
+                <!-- Sponsored Section -->
+                <section>
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">Sponsored · Suggested for you</h2>
+                        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v.01M12 12v.01M12 19v.01"/></svg>
                     </div>
-                    <!-- App 2 -->
-                    <div class="flex-shrink-0 w-28 text-center">
-                        <!-- User should replace 'tango_icon.png' -->
-                        <img src="tango_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/f06292/ffffff?text=T';" alt="Tango" class="sponsored-app-icon mx-auto">
-                        <h4 class="text-sm mt-2 truncate text-gray-200">Tango - Live Stream</h4>
-                        <p class="text-xs text-gray-400">4.4 ★</p>
-                    </div>
-                    <!-- App 3 -->
-                    <div class="flex-shrink-0 w-28 text-center">
-                        <!-- User should replace 'umamusume_icon.png' -->
-                        <img src="umamusume_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/9575cd/ffffff?text=U';" alt="Umamusume" class="sponsored-app-icon mx-auto">
-                        <h4 class="text-sm mt-2 truncate text-gray-200">Umamusume: Pretty Derby</h4>
-                        <p class="text-xs text-gray-400">4.1 ★</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- From the Editors Section -->
-            <section>
-                <a href="new.html" id="video-link" class="block rounded-2xl overflow-hidden relative bg-yellow-500">
-                    <!-- User should provide 'play_games_banner.mp4' -->
-                    <video autoplay loop muted playsinline class="w-full h-full object-cover">
-                        <source src="play_games_banner.mp4" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <div class="absolute bottom-0 left-0 p-4 text-black w-full bg-gradient-to-t from-yellow-500/50 to-transparent">
-                    </div>
-                </a>
-            </section>
-
-            <!-- Dating Apps Section -->
-            <section>
-                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-semibold">Dating apps</h2>
-                    <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </div>
-                <div class="space-y-4">
-                    <!-- App 1 -->
-                    <div class="flex items-center">
-                        <!-- User should replace 'fruitz_icon.png' -->
-                        <img src="fruitz_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ec4899/ffffff?text=F';" alt="Fruitz" class="app-icon">
-                        <div class="ml-4 flex-1">
-                            <h4 class="text-base text-gray-200">Fruitz - Dating app</h4>
-                            <p class="text-sm text-gray-400">Dating</p>
+                    <div class="flex space-x-4 overflow-x-auto no-scrollbar">
+                        <div class="flex-shrink-0 w-28 text-center">
+                            <img src="tiktok_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/000000/ffffff?text=TT';" alt="TikTok" class="sponsored-app-icon mx-auto">
+                            <h4 class="text-sm mt-2 truncate text-gray-200">TikTok - Videos, Shop</h4>
+                            <p class="text-xs text-gray-400">4.1 ★</p>
                         </div>
-                        <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
-                    </div>
-                    <!-- App 2 -->
-                    <div class="flex items-center">
-                        <!-- User should replace 'glam_icon.png' -->
-                        <img src="glam_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/f472b6/ffffff?text=G';" alt="GLAM" class="app-icon">
-                        <div class="ml-4 flex-1">
-                            <h4 class="text-base text-gray-200">GLAM - Dating & Romance</h4>
-                            <p class="text-sm text-gray-400">Dating · Casual · Social</p>
+                        <div class="flex-shrink-0 w-28 text-center">
+                            <img src="tango_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/f06292/ffffff?text=T';" alt="Tango" class="sponsored-app-icon mx-auto">
+                            <h4 class="text-sm mt-2 truncate text-gray-200">Tango - Live Stream</h4>
+                            <p class="text-xs text-gray-400">4.4 ★</p>
                         </div>
-                        <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                        <div class="flex-shrink-0 w-28 text-center">
+                            <img src="umamusume_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/96x96/9575cd/ffffff?text=U';" alt="Umamusume" class="sponsored-app-icon mx-auto">
+                            <h4 class="text-sm mt-2 truncate text-gray-200">Umamusume: Pretty Derby</h4>
+                            <p class="text-xs text-gray-400">4.1 ★</p>
+                        </div>
                     </div>
+                </section>
+
+                <!-- From the Editors Section -->
+                <section>
+                    <a href="#" id="video-link" class="block rounded-2xl overflow-hidden relative bg-yellow-500 cursor-pointer">
+                        <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                            <source src="play_games_banner.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="absolute bottom-0 left-0 p-4 text-black w-full bg-gradient-to-t from-yellow-500/50 to-transparent">
+                        </div>
+                    </a>
+                </section>
+
+                <!-- Dating Apps Section -->
+                <section>
+                     <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-semibold">Dating apps</h2>
+                        <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <img src="fruitz_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/ec4899/ffffff?text=F';" alt="Fruitz" class="app-icon">
+                            <div class="ml-4 flex-1">
+                                <h4 class="text-base text-gray-200">Fruitz - Dating app</h4>
+                                <p class="text-sm text-gray-400">Dating</p>
+                            </div>
+                            <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                        </div>
+                        <div class="flex items-center">
+                            <img src="glam_icon.png" onerror="this.onerror=null;this.src='https://placehold.co/64x64/f472b6/ffffff?text=G';" alt="GLAM" class="app-icon">
+                            <div class="ml-4 flex-1">
+                                <h4 class="text-base text-gray-200">GLAM - Dating & Romance</h4>
+                                <p class="text-sm text-gray-400">Dating · Casual · Social</p>
+                            </div>
+                            <button class="border border-gray-500 text-white font-semibold px-5 py-2 rounded-full text-sm">Install</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Bottom Navigation -->
+            <footer class="sticky bottom-0 bg-[#1e1e1e] border-t border-gray-700">
+                <div class="flex justify-around items-center h-20 text-xs text-gray-400">
+                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                        <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm14 0a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM18 3v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm12.5 6.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3ZM4.5 9.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3Zm10 11a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM6.5 20.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm6-17v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Z"/></svg>
+                        <span>Games</span>
+                    </a>
+                    <a href="#" class="text-center flex flex-col items-center justify-center bg-green-800/30 text-green-400 rounded-full px-4 py-2">
+                        <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+                        <span>Apps</span>
+                    </a>
+                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                        <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        <span>Search</span>
+                    </a>
+                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                        <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                        <span>Offers</span>
+                    </a>
+                     <a href="#" class="text-center flex flex-col items-center justify-center">
+                        <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                        <span>Books</span>
+                    </a>
                 </div>
-            </section>
-        </main>
-
-        <!-- Bottom Navigation -->
-        <footer class="sticky bottom-0 bg-[#1e1e1e] border-t border-gray-700">
-            <div class="flex justify-around items-center h-20 text-xs text-gray-400">
-                <a href="#" class="text-center flex flex-col items-center justify-center">
-                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm14 0a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM18 3v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm12.5 6.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3ZM4.5 9.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3Zm10 11a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM6.5 20.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm6-17v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Z"/></svg>
-                    <span>Games</span>
-                </a>
-                <a href="#" class="text-center flex flex-col items-center justify-center bg-green-800/30 text-green-400 rounded-full px-4 py-2">
-                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-                    <span>Apps</span>
-                </a>
-                <a href="#" class="text-center flex flex-col items-center justify-center">
-                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                    <span>Search</span>
-                </a>
-                <a href="#" class="text-center flex flex-col items-center justify-center">
-                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                    <span>Offers</span>
-                </a>
-                 <a href="#" class="text-center flex flex-col items-center justify-center">
-                    <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-                    <span>Books</span>
-                </a>
-            </div>
-        </footer>
-
+            </footer>
+        </div>
     </div>
 
+    <!-- Main Swipeable App Content (from games_from_chrome.html) -->
+    <div id="appContainer">
+        <div id="main-content">
+            <div id="swipeContainer">
+                <!-- Swipeable items will be dynamically inserted here -->
+            </div>
+            <div id="swipeCaptureLayer"></div>
+            <div id="uiOverlay">
+                <div class="actions-sidebar">
+                    <div class="action-button"><i class="fas fa-thumbs-up"></i><span>Like</span></div>
+                    <div class="action-button"><i class="fas fa-thumbs-down"></i><span>Dislike</span></div>
+                    <div class="action-button"><i class="fas fa-comment-dots"></i><span>123</span></div>
+                    <div class="action-button"><i class="fas fa-share"></i><span>Share</span></div>
+                    <div class="action-button"><i class="fas fa-ellipsis-h"></i></div>
+                    <div id="profileFullscreenButton" class="action-button profile-icon-container"><i class="fas fa-user"></i></div>
+                </div>
+                <div class="content-info">
+                    <div class="channel-name">@ChannelName</div>
+                    <div class="description">This is a cool video or game description... #hashtag</div>
+                </div>
+            </div>
+        </div>
+        <div id="bottom-nav-bar">
+            <button id="homeButton" class="nav-button" aria-label="Home">
+                <span class="icon" style="font-size: 24px;">⌂</span>
+                <span>Home</span>
+            </button>
+            <button id="gamesButton" class="nav-button active" aria-label="Games">
+                <span class="icon">
+                    <svg height="24" viewBox="0 0 24 24" width="24" focusable="false"><path d="M11.2,4.84,8.44,11.2H12.8l-.72,3.6,2.76-6.36H11.2Z M9.8,3.4,4,15.8h4.4v5.4l5.8-12.4H9.8Z"></path></svg>
+                </span>
+                <span>Games</span>
+            </button>
+            <a href="#" id="createButton" class="nav-button" aria-label="Create">
+                <span class="icon" style="font-size: 28px; border: 1.5px solid #AAAAAA; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; line-height: 28px;">+</span>
+            </a>
+            <button class="nav-button" aria-label="Subscriptions">
+                <span class="icon">
+                    <svg height="24" viewBox="0 0 24 24" width="24" focusable="false"><path d="M10 18v-6l5 3-5 3zm10-12H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 14H4V8h16v12zM4 6h12v1H4z"></path></svg>
+                </span>
+                <span>Subscriptions</span>
+            </button>
+            <button class="nav-button" aria-label="You">
+                <span class="icon" style="font-size: 24px;">👤</span>
+                <span>You</span>
+            </button>
+        </div>
+        <div id="createOverlay" style="display: none; position: absolute; bottom: 70px; left: 0; width: 100%; height: calc(100% - 70px); background-color: rgba(0,0,0,0.9); z-index: 25; flex-direction: column;">
+            <div style="padding: 10px; text-align: right;">
+                <button id="closeCreateOverlay" style="color: white; font-size: 24px; background: none; border: none; cursor: pointer;">&times;</button>
+            </div>
+            <iframe id="createIframe" src="about:blank" style="flex-grow: 1; border: none; width: 100%;"></iframe>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        // --- Configuration ---
+        const contentItems = [
+            { type: 'game', url: 'https://dinosaurgame3d.com/', id: 'game01', title: 'Dino3D', description: 'Chrome Dino game, in 3D' },
+            { type: 'game', url: 'https://gamesnacks.com/games/6e0ej8ct9hdj8#sc=1746578696109227372-2828726', id: 'game0', title: 'Retro Racer', description: 'Test your racing  skills. #brainteaser' },
+            { type: 'game', url: 'https://gamesnacks.com/games/5pj67mkaqugmo', id: 'game1', title: 'Fruit cube blast', description: 'Best match 3 game' },
+            { type: 'game', url: 'https://gamesnacks.com/games/7u583tvdi3f00', id: 'game3', title: 'Letter Links', description: 'Find the words hidden in the puzzle' },
+            { type: 'game', url: 'https://dmblack-example.web.app/square_eating_frenzy.html', id: 'game0003', title: 'EatingFrenzy', description: 'GenAI Square eating frenzy' },
+            { type: 'game', url: 'https://timesoup.github.io/game2048.html', id: 'game7', title: 'Gen Game 2', description: 'Just like the 2048 game' },
+            { type: 'game', url: 'https://timesoup.github.io/game3.html', id: 'game6', title: 'Blockz', description: 'How many blocky blasts can you make' },
+            { type: 'game', url: 'https://timesoup.github.io/game1.html', id: 'game4', title: 'Fluid Snake', description: 'Just like snake, just you get really big' },
+            { type: 'game', url: 'https://dmblack-example.web.app/flappy_block.html', id: 'game003', title: 'Flappy', description: 'GenAI Flappy Bird' },
+            { type: 'game', url: 'https://gamesnacks.com/games/0s1do8fmhrn9g#sc=1746578696103593132-2828726', id: 'game2', title: 'Family Feud', description: 'Guess their answer' },
+            { type: 'game', url: 'https://timesoup.github.io/game2.html', id: 'game5', title: 'Spelling Bee', description: 'Can you spell?' },
+            { type: 'video', videoId: 'k6XZ-hLbs-c', id: 'video0', title: 'chang0000', description: 'How\'s it feel when my crush like me back? 😳 #chang0000 #chany #c4class' },
+            { type: 'video', videoId: 'WjHgQsXEAFA', id: 'video1', title: 'engineerusa44', description: '181/LikeComment Subscribe"#SEO-driven#adamrose #construction #engineering #NYC #NewYorkCity #NYCVlog' },            
+            { type: 'video', videoId: 'J2Zqn4dXuno', id: 'video2', title: 'LUCKY MAN 10M', description: 'Moment Before Cooked ☠️ #trollface #edit #shorts' },
+            { type: 'video', videoId: 'VB5EVwbqmeE', id: 'video3', title: 'Funny Moments', description: 'A collection of hilarious clips. #funny #comedy' },
+            { type: 'video', videoId: 'jKISt-_GeQk', id: 'video4', title: 'RedFrame2', description: '#Move' },            
+            { type: 'video', videoId: 'gWF6RiY251M', id: 'video5', title: 'JasminandJames', description: 'Magic trick REVEALED… 👀😱🤣 | Jasmin and James #Shorts' },            
+            { type: 'video', videoId: 'cn965afzoe8', id: 'video6', title: 'ZachKing', description: 'Who enjoyed seeing the solar eclipse' },   
+            { type: 'video', videoId: '9efannizT9E', id: 'video7', title: 'Bachiraa-Editz', description: 'The Best Parkour 🗿' }            
+        ];
+
+        // --- State ---
+        let isYouTubeApiReady = false;
+        let currentItemIndex = 0;
+        let contentInitialized = false;
+        const youtubePlayers = {};
+        const preloadedIframes = {};
+        const PRELOAD_AHEAD = 1;
+
+        // --- DOM Elements ---
+        const playStoreContainer = document.getElementById('playStoreContainer');
+        const appContainer = document.getElementById('appContainer');
+        const swipeContainer = document.getElementById('swipeContainer');
+        const uiChannelName = document.querySelector('.content-info .channel-name');
+        const uiDescription = document.querySelector('.content-info .description');
+        const profileFullscreenButton = document.getElementById('profileFullscreenButton');
+        const videoLinkTrigger = document.getElementById('video-link');
+        const homeButton = document.getElementById('homeButton');
+        const actionsSidebar = document.querySelector('.actions-sidebar');
+
+        // --- Swipe Control State ---
+        let touchStartY = 0;
+        let isSwiping = false;
+        let touchStartScrollTop = 0;
+        const MIN_SWIPE_DISTANCE = 50;
+
+
+        // --- App Initialization and Control ---
+        function requestFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(console.warn);
+            else if (elem.mozRequestFullScreen) elem.mozRequestFullScreen().catch(console.warn);
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT).catch(console.warn);
+            else if (elem.msRequestFullscreen) elem.msRequestFullscreen().catch(console.warn);
+        }
+
+        function startApp() {
+            playStoreContainer.style.display = 'none';
+            document.body.classList.add('no-scroll');
+            appContainer.style.display = 'flex';
+            requestFullScreen();
+
+            if (contentInitialized) return;
+
+            if (isYouTubeApiReady) {
+                initializeVisibleContent();
+            } else {
+                console.log("Start clicked, waiting for YouTube API...");
+                const apiWaitInterval = setInterval(() => {
+                    if (isYouTubeApiReady) {
+                        clearInterval(apiWaitInterval);
+                        console.log("YouTube API is now ready, initializing content.");
+                        initializeVisibleContent();
+                    }
+                }, 100);
+            }
+        }
+
+        // --- YouTube API Integration ---
+        window.onYouTubeIframeAPIReady = function() {
+            console.log("YouTube IFrame API Ready");
+            isYouTubeApiReady = true;
+        };
+
+        function createYoutubePlayer(item, itemDiv) {
+            const iframeId = `ytplayer-${item.id}`;
+            const playerDiv = document.createElement('div');
+            playerDiv.id = iframeId;
+            playerDiv.className = 'iframe-content';
+            itemDiv.appendChild(playerDiv);
+            preloadedIframes[contentItems.indexOf(item)] = playerDiv;
+            youtubePlayers[item.id] = new YT.Player(iframeId, {
+                height: '100%', width: '100%', videoId: item.videoId,
+                playerVars: { 'playsinline': 1, 'autoplay': 0, 'controls': 0, 'origin': window.location.origin, 'enablejsapi': 1, 'modestbranding': 1, 'showinfo': 0, 'rel': 0 },
+                events: { 'onReady': (event) => onPlayerReady(event, item), 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerReady(event, item) {
+            console.log(`Player ready for ${item.id}`);
+            const itemIndex = contentItems.findIndex(ci => ci.id === item.id);
+            const itemDiv = swipeContainer.querySelector(`.swipe-item[data-index='${itemIndex}']`);
+            if (itemDiv) itemDiv.querySelector('.loader')?.remove();
+            if (itemIndex === currentItemIndex) {
+                setTimeout(() => event.target?.playVideo(), 100);
+            }
+        }
+
+        function onPlayerStateChange(event) {}
+
+        // --- Content Loading and Management ---
+        function createItemElement(itemData, index) {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'swipe-item';
+            itemDiv.dataset.index = index;
+            itemDiv.dataset.id = itemData.id;
+            itemDiv.dataset.type = itemData.type;
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            itemDiv.appendChild(loader);
+            swipeContainer.appendChild(itemDiv);
+            return itemDiv;
+        }
+
+        function loadItemContent(itemIndex) {
+            if (itemIndex < 0 || itemIndex >= contentItems.length || preloadedIframes[itemIndex]) return;
+            const itemData = contentItems[itemIndex];
+            const itemDiv = swipeContainer.querySelector(`.swipe-item[data-index='${itemIndex}']`);
+            if (!itemDiv) return;
+
+            if (itemData.type === 'video') {
+                if (typeof YT !== 'undefined' && typeof YT.Player !== 'undefined') {
+                    createYoutubePlayer(itemData, itemDiv);
+                }
+            } else if (itemData.type === 'game') {
+                const iframe = document.createElement('iframe');
+                iframe.className = 'iframe-content';
+                iframe.src = itemData.url;
+                iframe.setAttribute('allow', 'gamepad; autoplay; fullscreen;');
+                iframe.setAttribute('allowfullscreen', '');
+                iframe.setAttribute('scrolling', 'no');
+                iframe.onload = () => itemDiv.querySelector('.loader')?.remove();
+                iframe.onerror = () => itemDiv.querySelector('.loader').textContent = "Error.";
+                itemDiv.appendChild(iframe);
+                preloadedIframes[itemIndex] = iframe;
+            }
+        }
+
+        function updateDisplayedItemInfo(index) {
+            if (index >= 0 && index < contentItems.length) {
+                const item = contentItems[index];
+                uiChannelName.textContent = `@${item.title.replace(/\s+/g, '').substring(0,20) || 'Channel'}`;
+                uiDescription.textContent = item.description.substring(0, 100) || 'No description available.';
+            }
+        }
+
+        function initializeVisibleContent() {
+            if (contentInitialized) return;
+            contentInitialized = true;
+            contentItems.forEach((item, index) => createItemElement(item, index));
+            swipeContainer.scrollTop = currentItemIndex * swipeContainer.offsetHeight;
+            updatePreloadedContent(currentItemIndex);
+            updateDisplayedItemInfo(currentItemIndex);
+        }
+
+        function updatePreloadedContent(newIndex) {
+            loadItemContent(newIndex);
+            for (let i = 1; i <= PRELOAD_AHEAD; i++) {
+                loadItemContent(newIndex + i);
+                loadItemContent(newIndex - i);
+            }
+        }
+
+        function scrollToItem(index) {
+            const newValidIndex = Math.max(0, Math.min(index, contentItems.length - 1));
+            swipeContainer.scrollTo({ top: newValidIndex * swipeContainer.offsetHeight, behavior: 'smooth' });
+        }
+
+        // --- Scroll and Navigation Logic ---
+        actionsSidebar.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isSwiping = true;
+                touchStartY = e.touches[0].clientY;
+                touchStartScrollTop = swipeContainer.scrollTop;
+                swipeContainer.style.scrollBehavior = 'auto';
+            }
+        }, { passive: true });
+
+        actionsSidebar.addEventListener('touchmove', (e) => {
+            if (!isSwiping || e.touches.length !== 1) return;
+            e.preventDefault();
+            const touchCurrentY = e.touches[0].clientY;
+            const deltaY = touchCurrentY - touchStartY;
+            swipeContainer.scrollTop = touchStartScrollTop - deltaY;
+        }, { passive: false });
+
+        actionsSidebar.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            swipeContainer.style.scrollBehavior = 'smooth';
+            const swipeDistance = e.changedTouches[0].clientY - touchStartY;
+
+            if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
+                scrollToItem(currentItemIndex + (swipeDistance < 0 ? 1 : -1));
+            } else {
+                scrollToItem(currentItemIndex);
+            }
+        });
+
+        function handleScrollEnd() {
+            const newIndex = Math.round(swipeContainer.scrollTop / swipeContainer.offsetHeight);
+            if (newIndex !== currentItemIndex && newIndex >= 0 && newIndex < contentItems.length) {
+                const previousItemData = contentItems[currentItemIndex];
+                if (previousItemData?.type === 'video' && youtubePlayers[previousItemData.id]) {
+                    youtubePlayers[previousItemData.id].pauseVideo();
+                }
+                currentItemIndex = newIndex;
+                updatePreloadedContent(currentItemIndex);
+                updateDisplayedItemInfo(currentItemIndex);
+                const currentItemData = contentItems[currentItemIndex];
+                if (currentItemData.type === 'video' && youtubePlayers[currentItemData.id]) {
+                    setTimeout(() => youtubePlayers[currentItemData.id]?.playVideo(), 100);
+                }
+            }
+        }
+
+        let scrollEndTimeout;
+        swipeContainer.addEventListener('scroll', () => {
+            clearTimeout(scrollEndTimeout);
+            scrollEndTimeout = setTimeout(handleScrollEnd, 150);
+        });
+
+        // --- Event Listeners Setup ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const createButton = document.getElementById('createButton');
+            const createOverlay = document.getElementById('createOverlay');
+            const closeCreateOverlay = document.getElementById('closeCreateOverlay');
+            const createIframe = document.getElementById('createIframe');
+            const gamesButton = document.getElementById('gamesButton');
+
+            videoLinkTrigger?.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                startApp(); 
+            });
+
+            homeButton?.addEventListener('click', () => {
+                const currentItemData = contentItems[currentItemIndex];
+                if (currentItemData?.type === 'video' && youtubePlayers[currentItemData.id]) {
+                    youtubePlayers[currentItemData.id].pauseVideo();
+                }
+                appContainer.style.display = 'none';
+                playStoreContainer.style.display = 'block';
+                document.body.classList.remove('no-scroll');
+            });
+
+            profileFullscreenButton?.addEventListener('click', requestFullScreen);
+
+            gamesButton?.addEventListener('click', () => {
+                if (createOverlay) createOverlay.style.display = 'none';
+                if (createIframe) createIframe.src = 'about:blank';
+            });
+
+            createButton?.addEventListener('click', (e) => {
+                e.preventDefault();
+                createIframe.src = 'create.html';
+                createOverlay.style.display = 'flex';
+            });
+            
+            closeCreateOverlay?.addEventListener('click', () => {
+                createOverlay.style.display = 'none';
+                createIframe.src = 'about:blank';
+            });
+        });
+    </script>
 </body>
 </html>
