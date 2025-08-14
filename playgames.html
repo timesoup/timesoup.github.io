@@ -252,7 +252,7 @@
                 </div>
                 <div class="flex items-center ml-4 space-x-4">
                      <svg class="w-6 h-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-                    <img src="profile_pic.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/7e22ce/ffffff?text=U';" alt="User Profile" class="w-8 h-8 rounded-full">
+                    <img id="profilePic" src="profile_pic.jpg" onerror="this.onerror=null;this.src='https://placehold.co/40x40/7e22ce/ffffff?text=U';" alt="User Profile" class="w-8 h-8 rounded-full cursor-pointer">
                 </div>
             </header>
 
@@ -358,23 +358,23 @@
             <!-- Bottom Navigation -->
             <footer class="sticky bottom-0 bg-[#1e1e1e] border-t border-gray-700">
                 <div class="flex justify-around items-center h-20 text-xs text-gray-400">
-                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <a href="#" id="gamesLink" class="text-center flex flex-col items-center justify-center">
                         <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm14 0a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM18 3v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm-5 0v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Zm12.5 6.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3ZM4.5 9.5a1 1 0 0 1-2 0v-3a1 1 0 0 1 2 0v3Zm10 11a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3ZM6.5 20.5a1 1 0 0 1 0-2h3a1 1 0 0 1 0 2h-3Zm6-17v4a1 1 0 0 1-2 0V3a1 1 0 0 1 2 0Z"/></svg>
                         <span>Games</span>
                     </a>
-                    <a href="#" class="text-center flex flex-col items-center justify-center bg-green-800/30 text-green-400 rounded-full px-4 py-2">
+                    <a href="#" id="appsLink" class="text-center flex flex-col items-center justify-center bg-green-800/30 text-green-400 rounded-full px-4 py-2">
                         <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
                         <span>Apps</span>
                     </a>
-                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <a href="#" id="searchLink" class="text-center flex flex-col items-center justify-center">
                         <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                         <span>Search</span>
                     </a>
-                    <a href="#" class="text-center flex flex-col items-center justify-center">
+                    <a href="#" id="offersLink" class="text-center flex flex-col items-center justify-center">
                         <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
                         <span>Offers</span>
                     </a>
-                     <a href="#" class="text-center flex flex-col items-center justify-center">
+                     <a href="#" id="booksLink" class="text-center flex flex-col items-center justify-center">
                         <svg class="w-6 h-6 mb-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
                         <span>Books</span>
                     </a>
@@ -681,6 +681,20 @@
             const closeCreateOverlay = document.getElementById('closeCreateOverlay');
             const createIframe = document.getElementById('createIframe');
             const gamesButton = document.getElementById('gamesButton');
+            const profilePic = document.getElementById('profilePic');
+            const gamesLink = document.getElementById('gamesLink');
+            const appsLink = document.getElementById('appsLink');
+            const searchLink = document.getElementById('searchLink');
+            const offersLink = document.getElementById('offersLink');
+            const booksLink = document.getElementById('booksLink');
+
+
+            profilePic?.addEventListener('click', requestFullScreen);
+            gamesLink?.addEventListener('click', requestFullScreen);
+            appsLink?.addEventListener('click', requestFullScreen);
+            searchLink?.addEventListener('click', requestFullScreen);
+            offersLink?.addEventListener('click', requestFullScreen);
+            booksLink?.addEventListener('click', requestFullScreen);
 
             videoLinkTrigger?.addEventListener('click', (e) => { 
                 e.preventDefault(); 
